@@ -172,4 +172,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // Activate icons if using Lucide
 if (window.lucide) {
     lucide.createIcons();
+}const quotes = [
+    "The night is darkest just before the dawn. Keep grinding.",
+    "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    "Your ambition should be larger than your excuses.",
+    "LBSNAA is waiting. Finish your targets today!"
+];
+
+function showRandomQuote() {
+    const quoteElement = document.getElementById('daily-quote');
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    if(quoteElement) quoteElement.innerText = randomQuote;
 }
+
+// Add showRandomQuote(); inside your DOMContentLoaded listener!
