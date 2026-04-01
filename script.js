@@ -1,57 +1,51 @@
 const dailyQuestions = [
     {
-        question: "1. Which ancient town is well-known for its elaborate system of water management?",
+        question: "Which ancient town is known for its water management system?",
         options: ["Dholavira", "Rakhi-garhi", "Ropar", "Lothal"],
         correct: 0
     },
     {
-        question: "2. The 'Rakhmabai case of 1884' revolved around which of the following?",
+        question: "The 'Rakhmabai case of 1884' revolved around:",
         options: ["Women's education", "Age of consent", "Restitution of conjugal rights", "Both 2 and 3"],
         correct: 3
-    },
-    {
-        question: "3. In ancient India, the terms 'kulyavapa' and 'dronavapa' denote:",
-        options: ["Measurement of land", "Coins", "Classification of urban land", "Religious rituals"],
-        correct: 0
     }
 ];
 
 let currentQuestion = 0;
 
 function renderQuiz() {
-    const quizDiv = document.getElementById('quiz');
+    const container = document.getElementById('quiz-container');
+    
+    // Safety check: stops the code from breaking if the HTML ID is missing
+    if (!container) return;
+
     const q = dailyQuestions[currentQuestion];
     
-    quizDiv.innerHTML = `
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-            <p style="font-weight: bold; color: #1e293b;">${q.question}</p>
-            <div id="options-container">
-                ${q.options.map((opt, i) => `
-                    <button onclick="checkAnswer(${i})" style="display: block; width: 100%; text-align: left; padding: 10px; margin: 5px 0; border: 1px solid #cbd5e1; border-radius: 5px; cursor: pointer; background: white;">
-                        ${opt}
-                    </button>
-                `).join('')}
-            </div>
+    container.innerHTML = `
+        <div style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
+            <p style="font-weight: bold; margin-bottom: 15px;">${q.question}</p>
+            ${q.options.map((opt, i) => `
+                <button onclick="checkAnswer(${i})" style="display: block; width: 100%; margin: 8px 0; padding: 10px; cursor: pointer; border: 1px solid #6366f1; border-radius: 5px; background: white;">
+                    ${opt}
+                </button>
+            `).join('')}
         </div>
     `;
 }
 
 window.checkAnswer = (index) => {
     if (index === dailyQuestions[currentQuestion].correct) {
-        alert("Correct! Jai Hind!");
-        nextQuestion();
+        alert("✅ Correct! Moving to next question.");
+        currentQuestion++;
+        if (currentQuestion < dailyQuestions.length) {
+            renderQuiz();
+        } else {
+            document.getElementById('quiz-container').innerHTML = "<h3>🎉 Quiz Completed! Great job.</h3>";
+        }
     } else {
-        alert("Incorrect. Review the PYQ explanation.");
+        alert("❌ Incorrect. Try again!");
     }
 };
 
-function nextQuestion() {
-    currentQuestion++;
-    if (currentQuestion < dailyQuestions.length) {
-        renderQuiz();
-    } else {
-        document.getElementById('quiz').innerHTML = "<h3>🎉 Daily Quiz Completed!</h3>";
-    }
-}
-
-renderQuiz();
+// Start the quiz as soon as the page loads
+document.addEventListener('DOMContentLoaded', renderQuiz);
