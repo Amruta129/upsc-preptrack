@@ -185,4 +185,22 @@ function showRandomQuote() {
     if(quoteElement) quoteElement.innerText = randomQuote;
 }
 
-// Add showRandomQuote(); inside your DOMContentLoaded listener!
+// Add showRandomQuote(); inside your DOMContentLoaded listener!// Function to toggle tasks and check for victory
+window.toggleTask = (index) => {
+    tasks[index].completed = !tasks[index].completed;
+    localStorage.setItem('upsc_todos', JSON.stringify(tasks));
+    renderTasks();
+
+    // Check if all tasks are completed
+    const allDone = tasks.length > 0 && tasks.every(t => t.completed);
+    
+    if (allDone) {
+        document.getElementById('success-modal').style.display = 'flex';
+        // Optional: Play a tiny success sound or launch confetti here later!
+    }
+};
+
+// Function to close the popup
+window.closeModal = () => {
+    document.getElementById('success-modal').style.display = 'none';
+};
