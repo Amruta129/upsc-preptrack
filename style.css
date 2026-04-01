@@ -142,4 +142,11 @@ li {
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
+}.quiz-btn {
+    display: block; width: 100%; text-align: left; 
+    padding: 12px; margin: 10px 0; border: 1px solid #ddd;
+    border-radius: 8px; background: white; cursor: pointer;
+    transition: 0.2s;
 }
+.quiz-btn:hover { background: #f0f4ff; border-color: #6366f1; }
+.results-card { background: white; padding: 25px; border-radius: 15px; text-align: center; }
