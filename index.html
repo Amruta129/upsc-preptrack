@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepTrack w/ Amruta | UPSC LeetCode</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">PrepTrack <span>w/ Amruta</span></div>
+        <div class="nav-links">
+            <a href="#">Dashboard
+                <div class="card share-card" style="background: #25d366; color: white;">
+    <h2>Spread the Word</h2>
+    <p>Invite your study circle to track their streaks!</p>
+    <button id="whatsapp-share" class="btn-primary" style="background: white; color: #25d366;">
+        Share on WhatsApp
+    </button>
+</div>
+            </a>
+            <a href="#">Daily Quiz</a>
+            <a href="#">Discuss</a>
+        </div>
+        <button class="btn-signin">Sign In</button>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Master UPSC with Consistency</h1>
+            <p>Solve daily, maintain your streak, and clear the exam.</p>
+        </section>
+
+        <div class="dashboard-grid">
+            <div class="card quiz-card" id="quiz-container">
+    <div id="question-box">
+        <h2 id="question-text">Ready for today's UPSC Challenge?</h2>
+        <p id="question-context">Click the button below to start your 10-question daily grind.</p>
+        <button class="btn-primary" id="start-quiz-btn">Start Quiz</button>
+    </div>
+    
+    <div id="quiz-active" style="display: none;">
+        <h3 id="active-question" class="text-lg font-bold mb-4"></h3>
+        <div id="options-grid" style="display: flex; flex-direction: column; gap: 10px;">
+            </div>
+        <p id="quiz-status" style="margin-top: 20px; font-size: 0.8rem; color: gray;"></p>
+    </div>
+</div>
+                <h2>Today's Challenge</h2>
+                <p>Topic: Modern Indian History</p>
+                <button class="btn-primary">Start Quiz</button>
+            </div>
+            
+            <div class="card todo-card">
+    <h2>Personalized To-Do</h2>
+    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+        <input type="text" id="todo-input" placeholder="e.g. Read Polity Ch. 5" style="padding: 8px; flex-grow: 1; border: 1px solid #ddd; border-radius: 5px;">
+        <button id="add-todo-btn" style="background: #4f46e5; color: white; padding: 5px 15px; border-radius: 5px; border: none;">Add</button>
+    </div>
+    <ul id="todo-list">
+        </ul>
+</div>
+                <h2>To-Do List</h2>
+                <ul>
+                    <li><input type="checkbox"> Read The Hindu</li>
+                    <li><input type="checkbox"> Revise Polity</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+  
+    <script src="script.js"></script>
+</body>
+</html>
