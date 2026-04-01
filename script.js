@@ -1,206 +1,57 @@
-// ==========================================
-// 1. DATA & STATE (The "Brain")
-// ==========================================
-
-// Your UPSC Question Bank
-const upscQuestions = [
+const dailyQuestions = [
     {
-        question: "Which pillar of the Preamble emphasizes 'Brotherhood'?",
-        options: ["Justice", "Liberty", "Equality", "Fraternity"],
+        question: "1. Which ancient town is well-known for its elaborate system of water management?",
+        options: ["Dholavira", "Rakhi-garhi", "Ropar", "Lothal"],
+        correct: 0
+    },
+    {
+        question: "2. The 'Rakhmabai case of 1884' revolved around which of the following?",
+        options: ["Women's education", "Age of consent", "Restitution of conjugal rights", "Both 2 and 3"],
         correct: 3
     },
     {
-        question: "The 'Quit India Movement' was launched in which year?",
-        options: ["1940", "1942", "1945", "1947"],
-        correct: 1
-    },
-    {
-        question: "Which Article of the Indian Constitution deals with the Right to Equality?",
-        options: ["Article 12", "Article 14", "Article 21", "Article 32"],
-        correct: 1
+        question: "3. In ancient India, the terms 'kulyavapa' and 'dronavapa' denote:",
+        options: ["Measurement of land", "Coins", "Classification of urban land", "Religious rituals"],
+        correct: 0
     }
 ];
 
-let currentQuestionIndex = 0;
-let tasks = JSON.parse(localStorage.getItem('upsc_todos')) || [];
+let currentQuestion = 0;
 
-// ==========================================
-// 2. ELEMENT SELECTORS
-// ==========================================
-
-// Quiz Elements
-const questionBox = document.getElementById('question-box');
-const quizActive = document.getElementById('quiz-active');
-const activeQuestText = document.getElementById('active-question');
-const optionsGrid = document.getElementById('options-grid');
-const startBtn = document.getElementById('start-quiz-btn');
-
-// To-Do Elements
-const todoInput = document.getElementById('todo-input');
-const addBtn = document.getElementById('add-todo-btn');
-const todoList = document.getElementById('todo-list');
-
-// ==========================================
-// 3. STREAK LOGIC
-// ==========================================
-
-function displayStreak() {
-    let streak = localStorage.getItem('upsc_streak') || 0;
-    const hero = document.querySelector('.hero');
+function renderQuiz() {
+    const quizDiv = document.getElementById('quiz');
+    const q = dailyQuestions[currentQuestion];
     
-    // Check if badge already exists to avoid duplicates
-    let existingBadge = document.getElementById('streak-badge');
-    if (existingBadge) existingBadge.remove();
-
-    const streakDisplay = document.createElement('div');
-    streakDisplay.id = 'streak-badge';
-    streakDisplay.innerHTML = `
-        <div style="background: #ffedd5; color: #ea580c; padding: 10px 20px; 
-                    border-radius: 20px; display: inline-block; font-weight: bold; margin-top: 20px; border: 2px solid #fdba74;">
-            🔥 Current Streak: ${streak} Days
+    quizDiv.innerHTML = `
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <p style="font-weight: bold; color: #1e293b;">${q.question}</p>
+            <div id="options-container">
+                ${q.options.map((opt, i) => `
+                    <button onclick="checkAnswer(${i})" style="display: block; width: 100%; text-align: left; padding: 10px; margin: 5px 0; border: 1px solid #cbd5e1; border-radius: 5px; cursor: pointer; background: white;">
+                        ${opt}
+                    </button>
+                `).join('')}
+            </div>
         </div>
     `;
-    hero.appendChild(streakDisplay);
 }
 
-// ==========================================
-// 4. QUIZ LOGIC
-// ==========================================
-
-function startQuiz() {
-    if(questionBox) questionBox.style.display = 'none';
-    if(quizActive) quizActive.style.display = 'block';
-    showQuestion();
-}
-
-function showQuestion() {
-    const q = upscQuestions[currentQuestionIndex];
-    activeQuestText.innerText = q.question;
-    optionsGrid.innerHTML = ''; 
-
-    q.options.forEach((opt, index) => {
-        const btn = document.createElement('button');
-        btn.innerText = opt;
-        btn.style.cssText = "padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; text-align: left; background: white; font-weight: 500; transition: 0.2s;";
-        
-        btn.onmouseover = () => btn.style.background = "#f1f5f9";
-        btn.onmouseout = () => btn.style.background = "white";
-        
-        btn.onclick = () => checkAnswer(index);
-        optionsGrid.appendChild(btn);
-    });
-}
-
-function checkAnswer(selectedIndex) {
-    const correctIndex = upscQuestions[currentQuestionIndex].correct;
-    
-    if (selectedIndex === correctIndex) {
-        alert("Correct! ✅");
+window.checkAnswer = (index) => {
+    if (index === dailyQuestions[currentQuestion].correct) {
+        alert("Correct! Jai Hind!");
+        nextQuestion();
     } else {
-        alert("Keep trying! The correct answer was: " + upscQuestions[currentQuestionIndex].options[correctIndex]);
+        alert("Incorrect. Review the PYQ explanation.");
     }
+};
 
-    currentQuestionIndex++;
-
-    if (currentQuestionIndex < upscQuestions.length) {
-        showQuestion();
+function nextQuestion() {
+    currentQuestion++;
+    if (currentQuestion < dailyQuestions.length) {
+        renderQuiz();
     } else {
-        finishQuiz();
+        document.getElementById('quiz').innerHTML = "<h3>🎉 Daily Quiz Completed!</h3>";
     }
 }
 
-function finishQuiz() {
-    quizActive.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-            <h2 style="color: #4f46e5; font-size: 1.5rem;">Quiz Completed! 🎉</h2>
-            <p style="margin-top: 10px; color: #64748b;">You've secured your streak for today. Reloading...</p>
-        </div>
-    `;
-    
-    let streak = parseInt(localStorage.getItem('upsc_streak') || 0) + 1;
-    localStorage.setItem('upsc_streak', streak);
-    
-    setTimeout(() => location.reload(), 2000);
-}
-
-// ==========================================
-// 5. TO-DO LIST LOGIC
-// ==========================================
-
-function renderTasks() {
-    if(!todoList) return;
-    todoList.innerHTML = '';
-    tasks.forEach((task, index) => {
-        const li = document.createElement('li');
-        li.style.cssText = "display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9;";
-        li.innerHTML = `
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
-            <span style="${task.completed ? 'text-decoration: line-through; color: gray;' : ''}">${task.text}</span>
-        `;
-        todoList.appendChild(li);
-    });
-}
-
-window.toggleTask = (index) => {
-    tasks[index].completed = !tasks[index].completed;
-    localStorage.setItem('upsc_todos', JSON.stringify(tasks));
-    renderTasks();
-};
-
-if(addBtn) {
-    addBtn.addEventListener('click', () => {
-        const text = todoInput.value.trim();
-        if (text) {
-            tasks.push({ text: text, completed: false });
-            localStorage.setItem('upsc_todos', JSON.stringify(tasks));
-            todoInput.value = '';
-            renderTasks();
-        }
-    });
-}
-
-// ==========================================
-// 6. INITIALIZATION (Run on startup)
-// ==========================================
-
-document.addEventListener('DOMContentLoaded', () => {
-    displayStreak();
-    renderTasks();
-    if(startBtn) startBtn.addEventListener('click', startQuiz);
-});
-
-// Activate icons if using Lucide
-if (window.lucide) {
-    lucide.createIcons();
-}const quotes = [
-    "The night is darkest just before the dawn. Keep grinding.",
-    "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-    "Your ambition should be larger than your excuses.",
-    "LBSNAA is waiting. Finish your targets today!"
-];
-
-function showRandomQuote() {
-    const quoteElement = document.getElementById('daily-quote');
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    if(quoteElement) quoteElement.innerText = randomQuote;
-}
-
-// Add showRandomQuote(); inside your DOMContentLoaded listener!// Function to toggle tasks and check for victory
-window.toggleTask = (index) => {
-    tasks[index].completed = !tasks[index].completed;
-    localStorage.setItem('upsc_todos', JSON.stringify(tasks));
-    renderTasks();
-
-    // Check if all tasks are completed
-    const allDone = tasks.length > 0 && tasks.every(t => t.completed);
-    
-    if (allDone) {
-        document.getElementById('success-modal').style.display = 'flex';
-        // Optional: Play a tiny success sound or launch confetti here later!
-    }
-};
-
-// Function to close the popup
-window.closeModal = () => {
-    document.getElementById('success-modal').style.display = 'none';
-};
+renderQuiz();
