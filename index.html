@@ -3,29 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrepTrack w/ Amruta | UPSC LeetCode</title>
+    <title>PrepTrack w/ Amruta | UPSC Daily</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
     <nav class="navbar">
         <div class="logo">PrepTrack <span>w/ Amruta</span></div>
         <div class="nav-links">
-            <div class="quote-card" style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; text-align: center; border-left: 5px solid #6366f1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-    <p id="daily-quote" style="font-style: italic; color: #475569; font-size: 1.1rem;">"Loading inspiration..."</p>
-</div>
-            <a href="#">Dashboard
-                <div class="card share-card" style="background: #25d366; color: white;">
-    <h2>Spread the Word</h2>
-    <p>Invite your study circle to track their streaks!</p>
-    <button id="whatsapp-share" class="btn-primary" style="background: white; color: #25d366;">
-        Share on WhatsApp
-    </button>
-</div>
-            </a>
-            <a href="#">Daily Quiz</a>
-            <a href="#">Discuss</a>
+            <div class="streak-display">🔥 Streak: <span id="streak-count">0</span></div>
+            <a href="#quiz-section">Daily Quiz</a>
+            <a href="#community">Community</a>
         </div>
         <button class="btn-signin">Sign In</button>
     </nav>
@@ -33,73 +21,59 @@
     <main class="container">
         <section class="hero">
             <h1>Master UPSC with Consistency</h1>
-            <p>Solve daily, maintain your streak, and clear the exam.</p>
+            <p>Maintain your streak, solve 10 PYQs daily, and clear the exam.</p>
+            
+            <div class="quote-card">
+                <p id="daily-quote">"The secret of getting ahead is getting started."</p>
+            </div>
         </section>
 
         <div class="dashboard-grid">
-            <div class="card quiz-card" id="quiz-container">
-    <div id="question-box">
-        <h2 id="question-text">Ready for today's UPSC Challenge?</h2>
-        <p id="question-context">Click the button below to start your 10-question daily grind.</p>
-        <button class="btn-primary" id="start-quiz-btn">Start Quiz</button>
-    </div>
-    
-    <div class="card">
-    <h3>Daily UPSC PYQ Quiz</h3>
-    <div id="quiz-container">
-        <p>Loading your daily questions...</p>
-    </div>
-</div>
-</div>
-                <h2>Today's Challenge</h2>
-                <p>Topic: Modern Indian History</p>
-                <button class="btn-primary">Start Quiz</button>
+            
+            <div class="card quiz-card" id="quiz-section">
+                <h2>Daily UPSC Challenge</h2>
+                <div id="quiz-container">
+                    <p>Ready for today's 10-question grind?</p>
+                    <button class="btn-primary" onclick="startQuiz()">Start Today's Quiz</button>
+                </div>
             </div>
             
             <div class="card todo-card">
-    <h2>Personalized To-Do</h2>
-    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-        <input type="text" id="todo-input" placeholder="e.g. Read Polity Ch. 5" style="padding: 8px; flex-grow: 1; border: 1px solid #ddd; border-radius: 5px;">
-        <button id="add-todo-btn" style="background: #4f46e5; color: white; padding: 5px 15px; border-radius: 5px; border: none;">Add</button>
-    </div>
-    <ul id="todo-list">
-        </ul>
-</div>
-                <h2>To-Do List</h2>
-                <ul>
-                    <li><input type="checkbox"> Read The Hindu</li>
-                    <li><input type="checkbox"> Revise Polity</li>
-                </ul>
+                <h2>Personalized To-Do</h2>
+                <div class="todo-input-group">
+                    <input type="text" id="todo-input" placeholder="e.g. Read Polity Ch. 5">
+                    <button id="add-todo-btn" onclick="addTask()">Add</button>
+                </div>
+                <ul id="todo-list">
+                    </ul>
             </div>
+
+        </div>
+
+        <div class="card share-card" style="background: #25d366; color: white; margin-top: 20px; text-align: center;">
+            <h2>Spread the Word</h2>
+            <p>Invite your study circle to track their streaks!</p>
+            <button onclick="window.open('https://api.whatsapp.com/send?text=Hey! Check out this UPSC PrepTracker: https://upsc-preptrack.vercel.app')" class="btn-primary" style="background: white; color: #25d366; border: none;">
+                Share on WhatsApp
+            </button>
         </div>
     </main>
 
-  
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <h1>🏆</h1>
+            <h2>Daily Target Achieved!</h2>
+            <p>You just moved one step closer to LBSNAA. See you tomorrow, Officer!</p>
+            <button onclick="document.getElementById('success-modal').style.display='none'" class="btn-primary">Got it!</button>
+        </div>
+    </div>
+
+    <section id="community" class="community-section">
+        <h2>Join the Inner Circle</h2>
+        <p>Exclusive strategies for the full version.</p>
+        <button onclick="window.location.href='https://t.me/your-channel-link'" class="btn-telegram">Join Telegram</button>
+    </section>
+
     <script src="script.js"></script>
-    <div id="success-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-        <h1 style="font-size: 3rem; margin-bottom: 10px;">🏆</h1>
-        <h2 style="color: #1e293b; margin-bottom: 15px;">Daily Target Achieved!</h2>
-        <p style="color: #64748b; line-height: 1.6;">You just moved one step closer to LBSNAA. Rest well, Officer. See you tomorrow!</p>
-        <button onclick="closeModal()" style="margin-top: 20px; background: #6366f1; color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold;">
-            Got it!
-        </button>
-    </div>
-</div>
-<section id="community" style="text-align: center; padding: 40px; background: #f8fafc; margin-top: 50px;">
-    <h2>Join the PrepTrack Inner Circle</h2>
-    <p>Get exclusive study strategies and updates for the full version.</p>
-    
-    <div style="margin-top: 20px;">
-        <button onclick="window.location.href='https://t.me/your-channel-link'" style="background: #0088cc; color: white; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px;">
-            Join Telegram Channel
-        </button>
-        
-        <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" style="margin-top: 20px;">
-            <input type="email" name="email" placeholder="Enter your email for updates" required style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 250px;">
-            <button type="submit" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer;">Join Waitlist</button>
-        </form>
-    </div>
-</section>
 </body>
 </html>

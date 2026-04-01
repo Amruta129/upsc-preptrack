@@ -150,3 +150,94 @@ li {
 }
 .quiz-btn:hover { background: #f0f4ff; border-color: #6366f1; }
 .results-card { background: white; padding: 25px; border-radius: 15px; text-align: center; }
+/* 6. Streak & UI Enhancements */
+.streak-display {
+    background: #fff1f2; /* Light rose */
+    color: #e11d48; /* Crimson */
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid #fda4af;
+}
+
+/* 7. Modal (Success Popup) Styling */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(15, 23, 42, 0.8); /* Dark blur effect */
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 8. To-Do Specifics */
+.todo-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.todo-input-group input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    outline: none;
+}
+
+.todo-input-group input:focus {
+    border-color: #4f46e5;
+}
+
+#add-todo-btn {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* 9. Telegram Button */
+.btn-telegram {
+    background: #0088cc;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: 0.3s;
+}
+
+.btn-telegram:hover {
+    background: #0077b5;
+    box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+}
