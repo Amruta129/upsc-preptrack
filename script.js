@@ -6,15 +6,28 @@ let score = 0;
 // 1. Initialize
 async function init() {
     const savedStreak = localStorage.getItem('upsc_streak') || 0;
+    const lastDate = localStorage.getItem('upsc_last_date'); // Format: "Mon Oct 27 2025"
     const streakEl = document.getElementById('streak-count');
-    if (streakEl) streakEl.innerText = savedStreak;
+
+    // --- STREAK RESET LOGIC ---
+    const today = new Date().toDateString();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toDateString();
+
+    // If there's a record but it's not today AND it's not yesterday, they broke the streak
+    if (lastDate && lastDate !== today && lastDate !== yesterdayStr) {
+        localStorage.setItem('upsc_streak', 0);
+        if (streakEl) streakEl.innerText = 0;
+    } else {
+        if (streakEl) streakEl.innerText = savedStreak;
+    }
     
     renderTasks();
 
     try {
         const response = await fetch('questions.json');
         allQuestions = await response.json();
-        // We don't start the quiz automatically so the user can see the hero section
     } catch (e) { 
         console.error("Data Load Error", e); 
     }
@@ -45,7 +58,6 @@ window.startFilteredQuiz = (subject) => {
 
     quizData = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
-    // Scroll to quiz section
     document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -111,15 +123,20 @@ function saveMistake(id) {
 }
 
 function updateStreak() {
+    const today = new Date().toDateString();
+    const lastDate = localStorage.getItem('upsc_last_date');
     let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
-    streak++;
-    localStorage.setItem('upsc_streak', streak);
-    document.getElementById('streak-count').innerText = streak;
-    
-    // Show success modal if they did well
-    if (score >= 1) {
-        document.getElementById('success-modal').style.display = 'flex';
+
+    // Increase streak ONLY if they haven't finished a quiz today
+    if (lastDate !== today) {
+        streak++;
+        localStorage.setItem('upsc_streak', streak);
+        localStorage.setItem('upsc_last_date', today);
+        document.getElementById('streak-count').innerText = streak;
     }
+    
+    // Always show the modal on completion, regardless of score
+    document.getElementById('success-modal').style.display = 'flex';
 }
 
 // 4. Task/To-Do Logic
