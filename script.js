@@ -1,3 +1,64 @@
+
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyC12rmt0WxdDVUfyLw4lHK94uU1kbL47L8",
+  authDomain: "preptrack---upsc.firebaseapp.com",
+  projectId: "preptrack---upsc",
+  storageBucket: "preptrack---upsc.firebasestorage.app",
+  messagingSenderId: "426094667263",
+  appId: "1:426094667263:web:517556eaf8581c648a33ca",
+  measurementId: "G-6EXX7XY7T2"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// --- GOOGLE LOGIN FUNCTION ---
+window.handleLogin = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            console.log("Logged in as:", result.user.displayName);
+            updateUI(result.user);
+        })
+        .catch((error) => {
+            console.error("Login failed:", error);
+            alert("Login failed! Make sure you enabled Google Auth in Firebase console.");
+        });
+};
+
+// --- LOGOUT FUNCTION ---
+window.handleLogout = () => {
+    auth.signOut().then(() => {
+        window.location.reload(); // Refresh to reset UI
+    });
+};
+
+// --- AUTH OBSERVER ---
+// This checks if a user is already logged in when the page loads
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        updateUI(user);
+        syncCloudData(user);
+    } else {
+        console.log("No user logged in");
+    }
+});
+
+function updateUI(user) {
+    const authArea = document.getElementById('auth-area');
+    if (authArea) {
+        authArea.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img src="${user.photoURL}" style="width:35px; border-radius:50%;">
+                <span style="font-weight:bold; font-size:0.9rem;">Officer ${user.displayName.split(' ')[0]}</span>
+                <button onclick="handleLogout()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.8rem;">Logout</button>
+            </div>
+        `;
+    }
+}
 let allQuestions = [];
 let quizData = [];
 let currentIdx = 0;
