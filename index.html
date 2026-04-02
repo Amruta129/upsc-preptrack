@@ -10,38 +10,36 @@
 
     <nav class="navbar">
         <div class="logo">PrepTrack <span>w/ Amruta</span></div>
-        <div class="nav-links">
+        <div class="nav-right" style="display:flex; align-items:center; gap:20px;">
             <div class="streak-display">🔥 Streak: <span id="streak-count">0</span></div>
-            <div class="filter-bar" style="margin-bottom: 20px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
-    <button class="filter-btn" onclick="startFilteredQuiz('All')">All</button>
-    <button class="filter-btn" onclick="startFilteredQuiz('History')">History</button>
-    <button class="filter-btn" onclick="startFilteredQuiz('Polity')">Polity</button>
-    <button class="filter-btn" onclick="startFilteredQuiz('Geography')">Geography</button>
-    <button class="filter-btn" onclick="startFilteredQuiz('Review')" style="background: #ef4444; color: white;">Review Mistakes</button>
-</div>
-            <a href="#quiz-section">Daily Quiz</a>
-            <a href="#community">Community</a>
+            <button class="btn-signin">Sign In</button>
         </div>
-        <button class="btn-signin">Sign In</button>
     </nav>
+
+    <div class="filter-wrapper" style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:10px 0;">
+        <div class="container" style="display:flex; gap:10px; overflow-x:auto; padding:0 20px;">
+            <button class="filter-btn" onclick="startFilteredQuiz('All')">All</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('History')">History</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Polity')">Polity</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Geography')">Geography</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Economy')">Economy</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Science')">Science</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Review')" style="background:#fee2e2; color:#b91c1c;">Review Errors</button>
+        </div>
+    </div>
 
     <main class="container">
         <section class="hero">
             <h1>Master UPSC with Consistency</h1>
             <p>Maintain your streak, solve 10 PYQs daily, and clear the exam.</p>
-            
-            <div class="quote-card">
-                <p id="daily-quote">"The secret of getting ahead is getting started."</p>
-            </div>
         </section>
 
         <div class="dashboard-grid">
-            
             <div class="card quiz-card" id="quiz-section">
                 <h2>Daily UPSC Challenge</h2>
                 <div id="quiz-container">
                     <p>Ready for today's 10-question grind?</p>
-                    <button class="btn-primary" onclick="startQuiz()">Start Today's Quiz</button>
+                    <button class="btn-primary" onclick="startFilteredQuiz('All')">Start Today's Quiz</button>
                 </div>
             </div>
             
@@ -51,35 +49,27 @@
                     <input type="text" id="todo-input" placeholder="e.g. Read Polity Ch. 5">
                     <button id="add-todo-btn" onclick="addTask()">Add</button>
                 </div>
-                <ul id="todo-list">
+                <ul id="todo-list" style="list-style:none; padding:0; margin-top:15px;">
                     </ul>
             </div>
-
         </div>
 
         <div class="card share-card" style="background: #25d366; color: white; margin-top: 20px; text-align: center;">
             <h2>Spread the Word</h2>
-            <p>Invite your study circle to track their streaks!</p>
-            <button onclick="window.open('https://api.whatsapp.com/send?text=Hey! Check out this UPSC PrepTracker: https://upsc-preptrack.vercel.app')" class="btn-primary" style="background: white; color: #25d366; border: none;">
+            <button onclick="window.open('https://api.whatsapp.com/send?text=Check out my UPSC streak!')" class="btn-primary" style="background: white; color: #25d366; border: none; margin-top:10px;">
                 Share on WhatsApp
             </button>
         </div>
     </main>
 
-    <div id="success-modal" class="modal">
+    <div id="success-modal" class="modal" style="display:none;">
         <div class="modal-content">
             <h1>🏆</h1>
-            <h2>Daily Target Achieved!</h2>
-            <p>You just moved one step closer to LBSNAA. See you tomorrow, Officer!</p>
-            <button onclick="document.getElementById('success-modal').style.display='none'" class="btn-primary">Got it!</button>
+            <h2>Target Achieved!</h2>
+            <p>One step closer to LBSNAA. See you tomorrow!</p>
+            <button onclick="document.getElementById('success-modal').style.display='none'" class="btn-primary">Continue</button>
         </div>
     </div>
-
-    <section id="community" class="community-section">
-        <h2>Join the Inner Circle</h2>
-        <p>Exclusive strategies for the full version.</p>
-        <button onclick="window.location.href='https://t.me/your-channel-link'" class="btn-telegram">Join Telegram</button>
-    </section>
 
     <script src="script.js"></script>
 </body>
