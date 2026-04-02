@@ -9,7 +9,6 @@ const firebaseConfig = {
     measurementId: "G-6EXX7XY7T2"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -30,7 +29,7 @@ window.handleLogin = () => {
 
 window.handleLogout = () => {
     auth.signOut().then(() => {
-        localStorage.clear(); // CRITICAL: Reset streak to 0 on logout
+        localStorage.clear(); 
         window.location.reload();
     });
 };
@@ -69,7 +68,7 @@ async function syncCloudData(user) {
         localStorage.setItem('upsc_streak', data.streak || 0);
         localStorage.setItem('upsc_last_date', data.last_date || "");
         localStorage.setItem('upsc_tasks', JSON.stringify(data.tasks || []));
-        await userRef.update({ name: user.displayName }); // Keep name fresh
+        await userRef.update({ name: user.displayName });
     } else {
         await userRef.set({
             name: user.displayName,
@@ -86,27 +85,42 @@ async function updateLeaderboard() {
     const leaderboardList = document.getElementById('leaderboard-list');
     if (!leaderboardList) return;
 
+    // Show cached version first for instant loading
+    const cachedHTML = localStorage.getItem('leaderboard_cache');
+    if (cachedHTML) leaderboardList.innerHTML = cachedHTML;
+
     try {
         const snapshot = await db.collection('users')
             .orderBy('streak', 'desc')
             .limit(5)
             .get();
 
+        if (snapshot.empty) {
+            leaderboardList.innerHTML = "<p style='font-size:0.8rem; color:gray;'>No rankings yet. Be the first!</p>";
+            return;
+        }
+
         let html = '<table style="width:100%; border-collapse: collapse;">';
+        let rank = 1;
         snapshot.forEach(doc => {
             const data = doc.data();
             const isMe = currentUser && doc.id === currentUser.uid;
             html += `
-                <tr style="border-bottom: 1px solid #f1f5f9; height: 40px; ${isMe ? 'background:#eef2ff;' : ''}">
-                    <td style="padding-left:10px; font-weight:bold; color:#6366f1;">#</td>
-                    <td>${data.name || "Officer"}</td>
-                    <td style="text-align:right; padding-right:10px;">🔥 ${data.streak || 0}</td>
+                <tr style="border-bottom: 1px solid #f1f5f9; height: 45px; ${isMe ? 'background:#eef2ff;' : ''}">
+                    <td style="padding-left:10px; font-weight:bold; color:#6366f1; width:30px;">${rank}</td>
+                    <td style="font-size:0.9rem;">${data.name || "Officer"} ${isMe ? '(You)' : ''}</td>
+                    <td style="text-align:right; padding-right:10px; font-weight:600; color:#f59e0b;">🔥 ${data.streak || 0}</td>
                 </tr>`;
+            rank++;
         });
-        leaderboardList.innerHTML = html + '</table>';
+        html += '</table>';
+        
+        // Save to cache and update UI
+        localStorage.setItem('leaderboard_cache', html);
+        leaderboardList.innerHTML = html;
     } catch (e) {
         console.error("Leaderboard Error:", e);
-        leaderboardList.innerHTML = "<p style='font-size:0.7rem; color:gray;'>Loading rankings...</p>";
+        if (!cachedHTML) leaderboardList.innerHTML = "<p style='font-size:0.7rem; color:red;'>Index building... check back in 2 mins.</p>";
     }
 }
 
@@ -121,7 +135,6 @@ async function init() {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toDateString();
 
-    // Reset logic: If missed more than 1 day, reset to 0
     if (lastDate && lastDate !== today && lastDate !== yesterdayStr) {
         saveData(0, today, null);
         if (streakEl) streakEl.innerText = 0;
@@ -139,7 +152,7 @@ async function init() {
 
 function initGuestMode() {
     const streakEl = document.getElementById('streak-count');
-    if (streakEl) streakEl.innerText = 0; // Guests start at 0
+    if (streakEl) streakEl.innerText = 0;
     init();
 }
 
