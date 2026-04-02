@@ -12,6 +12,13 @@
         <div class="logo">PrepTrack <span>w/ Amruta</span></div>
         <div class="nav-links">
             <div class="streak-display">🔥 Streak: <span id="streak-count">0</span></div>
+            <div class="filter-bar" style="margin-bottom: 20px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+    <button class="filter-btn" onclick="startFilteredQuiz('All')">All</button>
+    <button class="filter-btn" onclick="startFilteredQuiz('History')">History</button>
+    <button class="filter-btn" onclick="startFilteredQuiz('Polity')">Polity</button>
+    <button class="filter-btn" onclick="startFilteredQuiz('Geography')">Geography</button>
+    <button class="filter-btn" onclick="startFilteredQuiz('Review')" style="background: #ef4444; color: white;">Review Mistakes</button>
+</div>
             <a href="#quiz-section">Daily Quiz</a>
             <a href="#community">Community</a>
         </div>

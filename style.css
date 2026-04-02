@@ -241,3 +241,33 @@ li {
     background: #0077b5;
     box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
 }
+.filter-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: 0.3s;
+}
+
+.filter-btn:hover {
+    background: #4f46e5;
+    color: white;
+}
+
+.big-score {
+    font-size: 3.5rem;
+    margin: 20px 0;
+    color: #4f46e5;
+}
+
+.animate-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
