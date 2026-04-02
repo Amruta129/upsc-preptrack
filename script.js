@@ -9,7 +9,10 @@ const firebaseConfig = {
     measurementId: "G-6EXX7XY7T2"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase only if not already initialized
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -77,16 +80,14 @@ async function syncCloudData(user) {
             tasks: JSON.parse(localStorage.getItem('upsc_tasks')) || []
         });
     }
-    init(); 
+    updateStreakDisplay();
+    renderTasks();
     updateLeaderboard();
 }
 
 async function updateLeaderboard() {
     const leaderboardList = document.getElementById('leaderboard-list');
     if (!leaderboardList) return;
-
-    const cachedHTML = localStorage.getItem('leaderboard_cache');
-    if (cachedHTML) leaderboardList.innerHTML = cachedHTML;
 
     try {
         const snapshot = await db.collection('users')
@@ -113,8 +114,6 @@ async function updateLeaderboard() {
             rank++;
         });
         html += '</table>';
-        
-        localStorage.setItem('leaderboard_cache', html);
         leaderboardList.innerHTML = html;
     } catch (e) {
         console.error("Leaderboard Error:", e);
@@ -123,34 +122,26 @@ async function updateLeaderboard() {
 
 // --- APP CORE LOGIC ---
 async function init() {
-    const streakEl = document.getElementById('streak-count');
-    const savedStreak = parseInt(localStorage.getItem('upsc_streak')) || 0;
-    const lastDate = localStorage.getItem('upsc_last_date');
-
-    const today = new Date().toDateString();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
-
-    if (lastDate && lastDate !== today && lastDate !== yesterdayStr) {
-        saveData(0, today, null);
-        if (streakEl) streakEl.innerText = 0;
-    } else {
-        if (streakEl) streakEl.innerText = savedStreak;
-    }
-    
+    updateStreakDisplay();
     renderTasks();
 
     try {
         const response = await fetch('./questions.json');
         allQuestions = await response.json();
-    } catch (e) { console.error("JSON Load Error", e); }
+        console.log("Questions loaded:", allQuestions.length);
+    } catch (e) { 
+        console.error("JSON Load Error", e); 
+    }
 }
 
 function initGuestMode() {
-    const streakEl = document.getElementById('streak-count');
-    if (streakEl) streakEl.innerText = 0;
     init();
+}
+
+function updateStreakDisplay() {
+    const streakEl = document.getElementById('streak-count');
+    const savedStreak = parseInt(localStorage.getItem('upsc_streak')) || 0;
+    if (streakEl) streakEl.innerText = savedStreak;
 }
 
 async function saveData(newStreak, newDate, newTasks) {
@@ -175,12 +166,14 @@ window.startFilteredQuiz = (subject) => {
     let filtered = [];
     if (subject === 'All') {
         filtered = allQuestions;
+    } else if (subject === 'Review') {
+        // Simple logic: Just shuffle all for now, or filter by a 'wrong' flag if you implement it
+        filtered = allQuestions.slice().sort(() => 0.5 - Math.random());
     } else {
-        // Fix: Case-insensitive filtering
         filtered = allQuestions.filter(q => q.subject.toLowerCase() === subject.toLowerCase());
     }
 
-    if (filtered.length === 0) return alert("Coming soon! No questions found for " + subject);
+    if (filtered.length === 0) return alert("No questions found for " + subject);
     
     quizData = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
@@ -204,34 +197,51 @@ function showQuestion() {
 }
 
 window.handleSelect = (idx) => {
-    if (idx === quizData[currentIdx].ans) score++;
-    currentIdx++;
-    if (currentIdx < quizData.length) showQuestion();
-    else showResults();
+    const q = quizData[currentIdx];
+    const buttons = document.querySelectorAll('.quiz-btn');
+    
+    // Disable all buttons after selection
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (idx === q.ans) {
+        score++;
+        buttons[idx].style.background = "#dcfce7"; // Green
+        buttons[idx].style.borderColor = "#22c55e";
+    } else {
+        buttons[idx].style.background = "#fee2e2"; // Red
+        buttons[idx].style.borderColor = "#ef4444";
+        // Show correct answer in green
+        buttons[q.ans].style.background = "#dcfce7";
+    }
+
+    setTimeout(() => {
+        currentIdx++;
+        if (currentIdx < quizData.length) showQuestion();
+        else showResults();
+    }, 1000);
 };
 
 function showResults() {
     const container = document.getElementById('quiz-container');
-    updateStreak(); 
+    
+    // Only update streak if it's a new day and they finished a quiz
+    const today = new Date().toDateString();
+    const lastDate = localStorage.getItem('upsc_last_date');
+    
+    if (lastDate !== today) {
+        let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
+        streak++;
+        saveData(streak, today, null);
+        updateStreakDisplay();
+        document.getElementById('success-modal').style.display = 'flex';
+    }
+
     container.innerHTML = `
         <div class="results-card" style="text-align:center; padding:20px;">
             <h2>${score >= 7 ? 'Excellent, Officer!' : 'Keep Grinding!'}</h2>
             <h1 class="big-score">${score} / ${quizData.length}</h1>
-            <button class="btn-primary" onclick="startFilteredQuiz('All')">New Quiz</button>
+            <button class="btn-primary" onclick="startFilteredQuiz('All')">Try Another Quiz</button>
         </div>`;
-}
-
-function updateStreak() {
-    const today = new Date().toDateString();
-    const lastDate = localStorage.getItem('upsc_last_date');
-    let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
-
-    if (lastDate !== today) {
-        streak++;
-        saveData(streak, today, null);
-        document.getElementById('streak-count').innerText = streak;
-    }
-    document.getElementById('success-modal').style.display = 'flex';
 }
 
 // --- TASK FUNCTIONS ---
@@ -248,7 +258,7 @@ window.renderTasks = () => {
 
 window.addTask = () => {
     const input = document.getElementById('todo-input');
-    if (!input.value.trim()) return;
+    if (!input || !input.value.trim()) return;
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
     tasks.push({ text: input.value, completed: false });
     saveData(null, null, tasks);
@@ -262,3 +272,6 @@ window.toggleTask = (index) => {
     saveData(null, null, tasks);
     renderTasks();
 };
+
+// Start the app
+init();

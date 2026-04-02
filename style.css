@@ -45,6 +45,9 @@ body {
     font-weight: 700;
     font-size: 0.9rem;
     border: 1px solid #fda4af;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /* 3. SUBJECT FILTER BAR */
@@ -53,8 +56,12 @@ body {
     border-bottom: 1px solid #e2e8f0;
     padding: 12px 0;
     position: sticky;
-    top: 65px; /* Just below navbar */
+    top: 65px;
     z-index: 900;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    overflow-x: auto;
 }
 
 .filter-btn {
@@ -70,10 +77,10 @@ body {
     transition: all 0.2s;
 }
 
-.filter-btn:hover {
-    background: #f1f5f9;
+.filter-btn:hover, .filter-btn.active {
+    background: #4f46e5;
     border-color: #4f46e5;
-    color: #4f46e5;
+    color: white;
 }
 
 /* 4. LAYOUT & CONTAINERS */
@@ -89,22 +96,18 @@ body {
 }
 
 .hero h1 {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     color: #0f172a;
     margin-bottom: 10px;
 }
 
-.hero p {
-    color: #64748b;
-}
-
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1.8fr 1.2fr;
     gap: 25px;
 }
 
-/* 5. CARDS & COMPONENTS */
+/* 5. CARDS & PREVENT REPETITION FIX */
 .card {
     background: white;
     padding: 25px;
@@ -112,6 +115,17 @@ body {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     border: 1px solid #e2e8f0;
     margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 🔥 CRITICAL FIX: Hide any nested Navbars, Sign-ins, or Streaks inside cards */
+.card .navbar, 
+.card .streak-display, 
+.card .btn-signin,
+.card .logo,
+.card .btn-signin-nav {
+    display: none !important;
 }
 
 .quiz-card {
@@ -122,23 +136,9 @@ body {
     font-size: 1.25rem;
     margin-bottom: 20px;
     color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
 /* 6. QUIZ STYLES */
-.quiz-box {
-    animation: fadeIn 0.4s ease-out;
-}
-
-.question-text {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin-bottom: 20px;
-    color: #334155;
-}
-
 .quiz-btn {
     display: block;
     width: 100%;
@@ -149,7 +149,6 @@ body {
     border-radius: 10px;
     background: white;
     cursor: pointer;
-    font-size: 0.95rem;
     transition: all 0.2s;
 }
 
@@ -159,71 +158,32 @@ body {
     transform: translateX(5px);
 }
 
-.big-score {
-    font-size: 4rem;
-    font-weight: 800;
-    color: #4f46e5;
-    margin: 20px 0;
-}
-
-/* 7. TO-DO SECTION */
-.todo-input-group {
-    display: flex;
-    gap: 10px;
-}
-
-.todo-input-group input {
-    flex-grow: 1;
-    padding: 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    outline: none;
-}
-
-#add-todo-btn {
-    background: #4f46e5;
-    color: white;
-    border: none;
-    padding: 0 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-/* 8. LEADERBOARD TABLE */
-#leaderboard-section {
-    max-width: 100%;
-}
-
+/* 7. LEADERBOARD TABLE */
 #leaderboard-list table {
     width: 100%;
     border-collapse: collapse;
 }
 
-#leaderboard-list tr {
-    transition: background 0.2s;
-}
-
-#leaderboard-list td {
-    padding: 15px;
+#leaderboard-list tr td {
+    padding: 12px 5px;
     border-bottom: 1px solid #f1f5f9;
 }
 
-/* 9. BUTTONS & MODALS */
-.btn-primary {
+#leaderboard-list tr td:first-child {
+    font-weight: bold;
+    color: #4f46e5;
+    width: 30px;
+}
+
+/* 8. BUTTONS & MODALS */
+.btn-signin {
     background: #4f46e5;
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-primary:hover {
-    background: #4338ca;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    font-weight: 600;
 }
 
 .modal {
@@ -245,10 +205,10 @@ body {
     text-align: center;
     max-width: 400px;
     width: 90%;
-    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: slideUp 0.4s ease-out;
 }
 
-/* 10. ANIMATIONS */
+/* 9. ANIMATIONS */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -259,17 +219,15 @@ body {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* 11. RESPONSIVE DESIGN */
+/* 10. RESPONSIVE DESIGN */
 @media (max-width: 768px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
-    
+    .navbar {
+        padding: 10px 15px;
+    }
     .hero h1 {
         font-size: 1.8rem;
-    }
-    
-    .navbar {
-        padding: 10px 20px;
     }
 }
