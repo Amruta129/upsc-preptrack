@@ -85,7 +85,6 @@ async function updateLeaderboard() {
     const leaderboardList = document.getElementById('leaderboard-list');
     if (!leaderboardList) return;
 
-    // Show cached version first for instant loading
     const cachedHTML = localStorage.getItem('leaderboard_cache');
     if (cachedHTML) leaderboardList.innerHTML = cachedHTML;
 
@@ -96,7 +95,7 @@ async function updateLeaderboard() {
             .get();
 
         if (snapshot.empty) {
-            leaderboardList.innerHTML = "<p style='font-size:0.8rem; color:gray;'>No rankings yet. Be the first!</p>";
+            leaderboardList.innerHTML = "<p style='font-size:0.8rem; color:gray; text-align:center;'>No rankings yet.</p>";
             return;
         }
 
@@ -115,12 +114,10 @@ async function updateLeaderboard() {
         });
         html += '</table>';
         
-        // Save to cache and update UI
         localStorage.setItem('leaderboard_cache', html);
         leaderboardList.innerHTML = html;
     } catch (e) {
         console.error("Leaderboard Error:", e);
-        if (!cachedHTML) leaderboardList.innerHTML = "<p style='font-size:0.7rem; color:red;'>Index building... check back in 2 mins.</p>";
     }
 }
 
@@ -174,8 +171,17 @@ async function saveData(newStreak, newDate, newTasks) {
 // --- QUIZ FUNCTIONS ---
 window.startFilteredQuiz = (subject) => {
     currentIdx = 0; score = 0;
-    let filtered = (subject === 'All') ? allQuestions : allQuestions.filter(q => q.subject === subject);
-    if (filtered.length === 0) return alert("No questions found!");
+    
+    let filtered = [];
+    if (subject === 'All') {
+        filtered = allQuestions;
+    } else {
+        // Fix: Case-insensitive filtering
+        filtered = allQuestions.filter(q => q.subject.toLowerCase() === subject.toLowerCase());
+    }
+
+    if (filtered.length === 0) return alert("Coming soon! No questions found for " + subject);
+    
     quizData = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
     document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
@@ -234,7 +240,7 @@ window.renderTasks = () => {
     if (!taskList) return;
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
     taskList.innerHTML = tasks.map((task, index) => `
-        <li>
+        <li style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
             <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
             <span style="${task.completed ? 'text-decoration: line-through; opacity:0.6;' : ''}">${task.text}</span>
         </li>`).join('');

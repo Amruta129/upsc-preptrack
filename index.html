@@ -50,7 +50,95 @@
     </h3>
     <div id="leaderboard-list">
         <p style="font-size: 0.8rem; color: gray;">Loading rankings...</p>
+    </div><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepTrack w/ Amruta | UPSC Daily</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">PrepTrack <span>w/ Amruta</span></div>
+        <div class="nav-right" style="display:flex; align-items:center; gap:20px;">
+            <div class="streak-display">🔥 Streak: <span id="streak-count">0</span></div>
+            <div id="auth-area">
+                <button class="btn-signin" id="login-btn" onclick="handleLogin()">Sign In</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="filter-wrapper" style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:10px 0; sticky:top;">
+        <div class="container" style="display:flex; gap:10px; overflow-x:auto; padding:0 20px; white-space: nowrap;">
+            <button class="filter-btn" onclick="startFilteredQuiz('All')">All</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('History')">History</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Polity')">Polity</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Geography')">Geography</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Economy')">Economy</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Science')">Science</button>
+            <button class="filter-btn" onclick="startFilteredQuiz('Environment')">Environment</button>
+        </div>
     </div>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Master UPSC with Consistency</h1>
+            <p>Maintain your streak, solve 10 PYQs daily, and clear the exam.</p>
+        </section>
+
+        <div class="dashboard-grid">
+            <div class="card quiz-card" id="quiz-section">
+                <h2>Daily UPSC Challenge</h2>
+                <div id="quiz-container">
+                    <p>Ready for today's 10-question grind?</p>
+                    <button class="btn-primary" onclick="startFilteredQuiz('All')">Start Today's Quiz</button>
+                </div>
+            </div>
+
+            <div class="card todo-card">
+                <h2>Personalized To-Do</h2>
+                <div class="todo-input-group">
+                    <input type="text" id="todo-input" placeholder="e.g. Read Polity Ch. 5">
+                    <button id="add-todo-btn" onclick="addTask()">Add</button>
+                </div>
+                <ul id="todo-list" style="list-style:none; padding:0; margin-top:15px;"></ul>
+            </div>
+        </div>
+
+        <section id="leaderboard-section" class="card animate-in" style="margin-top: 30px; border-top: 4px solid #6366f1;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <span style="font-size:1.5rem;">🏆</span>
+                <h2 style="margin:0; font-size:1.2rem;">Top Officers (Global)</h2>
+            </div>
+            <div id="leaderboard-list">
+                <p style="color:gray; text-align:center; padding:10px;">Loading rankings...</p>
+            </div>
+        </section>
+
+        <div class="card share-card" style="background: #25d366; color: white; margin-top: 20px; text-align: center;">
+            <h2>Spread the Word</h2>
+            <button onclick="window.open('https://api.whatsapp.com/send?text=Check out my UPSC streak on PrepTrack!')" class="btn-primary" style="background: white; color: #25d366; border: none; margin-top:10px;">
+                Share on WhatsApp
+            </button>
+        </div>
+    </main>
+
+    <div id="success-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h1>🏆</h1>
+            <h2>Target Achieved!</h2>
+            <p>One step closer to LBSNAA. See you tomorrow!</p>
+            <button onclick="document.getElementById('success-modal').style.display='none'" class="btn-primary">Continue</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
 </section>
             
             <div class="card todo-card">
