@@ -271,3 +271,38 @@ li {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+#leaderboard-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+#leaderboard-list table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#leaderboard-list tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+#leaderboard-list td {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+#leaderboard-list .rank-num {
+    font-weight: bold;
+    color: #6366f1;
+    width: 40px;
+}
+
+#leaderboard-list .streak-val {
+    text-align: right;
+    font-weight: 600;
+    color: #f59e0b;
+}
