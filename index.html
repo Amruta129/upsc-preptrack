@@ -15,14 +15,6 @@
         <div id="auth-area">
             <button class="btn-signin" id="login-btn" onclick="handleLogin()">Sign In</button>
         </div>
-
-        <div id="profile-area" style="display:none; position:relative;">
-            <img id="user-photo" src="" style="width:35px; border-radius:50%; cursor:pointer;">
-            <div id="profile-menu" class="card" style="position:absolute; right:0; top:45px; width:150px; display:none; z-index:100;">
-                <p id="user-name" style="font-weight:bold; font-size:0.9rem;"></p>
-                <button onclick="handleLogout()" style="color:red; background:none; border:none; cursor:pointer;">Logout</button>
-            </div>
-        </div>
     </div>
 </nav>
 
@@ -52,6 +44,14 @@
                     <button class="btn-primary" onclick="startFilteredQuiz('All')">Start Today's Quiz</button>
                 </div>
             </div>
+            <section id="leaderboard-section" class="card" style="margin-top: 20px; padding: 20px;">
+    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        🏆 Top Officers (Daily Streaks)
+    </h3>
+    <div id="leaderboard-list">
+        <p style="font-size: 0.8rem; color: gray;">Loading rankings...</p>
+    </div>
+</section>
             
             <div class="card todo-card">
                 <h2>Personalized To-Do</h2>
@@ -60,13 +60,23 @@
                     <button id="add-todo-btn" onclick="addTask()">Add</button>
                 </div>
                 <ul id="todo-list" style="list-style:none; padding:0; margin-top:15px;">
-                    </ul>
+                </ul>
             </div>
         </div>
 
+        <section id="leaderboard-section" class="card animate-in" style="margin-top: 30px; border-top: 4px solid #6366f1;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <span style="font-size:1.5rem;">🏆</span>
+                <h2 style="margin:0; font-size:1.2rem;">Top Officers (Global)</h2>
+            </div>
+            <div id="leaderboard-list">
+                <p style="color:gray; text-align:center; padding:10px;">Loading rankings...</p>
+            </div>
+        </section>
+
         <div class="card share-card" style="background: #25d366; color: white; margin-top: 20px; text-align: center;">
             <h2>Spread the Word</h2>
-            <button onclick="window.open('https://api.whatsapp.com/send?text=Check out my UPSC streak!')" class="btn-primary" style="background: white; color: #25d366; border: none; margin-top:10px;">
+            <button onclick="window.open('https://api.whatsapp.com/send?text=Check out my UPSC streak on PrepTrack!')" class="btn-primary" style="background: white; color: #25d366; border: none; margin-top:10px;">
                 Share on WhatsApp
             </button>
         </div>
@@ -82,9 +92,9 @@
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
