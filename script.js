@@ -24,14 +24,15 @@ let currentUser = null;
 window.handleLogin = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
-        .then((result) => {
-            console.log("Logged in:", result.user.displayName);
-        })
+        .then((result) => console.log("Logged in:", result.user.displayName))
         .catch((e) => alert("Login Error: " + e.message));
 };
 
 window.handleLogout = () => {
-    auth.signOut().then(() => window.location.reload());
+    auth.signOut().then(() => {
+        localStorage.clear(); // CRITICAL: Reset streak to 0 on logout
+        window.location.reload();
+    });
 };
 
 auth.onAuthStateChanged((user) => {
@@ -41,6 +42,7 @@ auth.onAuthStateChanged((user) => {
         syncCloudData(user);
     } else {
         initGuestMode();
+        updateLeaderboard(); 
     }
 });
 
@@ -57,7 +59,7 @@ function updateUI(user) {
     }
 }
 
-// --- DATA SYNC LOGIC ---
+// --- DATA SYNC & LEADERBOARD ---
 async function syncCloudData(user) {
     const userRef = db.collection('users').doc(user.uid);
     const doc = await userRef.get();
@@ -67,31 +69,61 @@ async function syncCloudData(user) {
         localStorage.setItem('upsc_streak', data.streak || 0);
         localStorage.setItem('upsc_last_date', data.last_date || "");
         localStorage.setItem('upsc_tasks', JSON.stringify(data.tasks || []));
+        await userRef.update({ name: user.displayName }); // Keep name fresh
     } else {
-        // First time user: Upload local data to cloud
         await userRef.set({
-            streak: localStorage.getItem('upsc_streak') || 0,
+            name: user.displayName,
+            streak: parseInt(localStorage.getItem('upsc_streak')) || 0,
             last_date: localStorage.getItem('upsc_last_date') || "",
             tasks: JSON.parse(localStorage.getItem('upsc_tasks')) || []
         });
     }
-    init(); // Re-run init with fresh data
+    init(); 
+    updateLeaderboard();
 }
 
-// --- APP LOGIC ---
+async function updateLeaderboard() {
+    const leaderboardList = document.getElementById('leaderboard-list');
+    if (!leaderboardList) return;
+
+    try {
+        const snapshot = await db.collection('users')
+            .orderBy('streak', 'desc')
+            .limit(5)
+            .get();
+
+        let html = '<table style="width:100%; border-collapse: collapse;">';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const isMe = currentUser && doc.id === currentUser.uid;
+            html += `
+                <tr style="border-bottom: 1px solid #f1f5f9; height: 40px; ${isMe ? 'background:#eef2ff;' : ''}">
+                    <td style="padding-left:10px; font-weight:bold; color:#6366f1;">#</td>
+                    <td>${data.name || "Officer"}</td>
+                    <td style="text-align:right; padding-right:10px;">🔥 ${data.streak || 0}</td>
+                </tr>`;
+        });
+        leaderboardList.innerHTML = html + '</table>';
+    } catch (e) {
+        console.error("Leaderboard Error:", e);
+        leaderboardList.innerHTML = "<p style='font-size:0.7rem; color:gray;'>Loading rankings...</p>";
+    }
+}
+
+// --- APP CORE LOGIC ---
 async function init() {
-    const savedStreak = localStorage.getItem('upsc_streak') || 0;
-    const lastDate = localStorage.getItem('upsc_last_date');
     const streakEl = document.getElementById('streak-count');
+    const savedStreak = parseInt(localStorage.getItem('upsc_streak')) || 0;
+    const lastDate = localStorage.getItem('upsc_last_date');
 
     const today = new Date().toDateString();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toDateString();
 
-    // Streak Reset Logic
+    // Reset logic: If missed more than 1 day, reset to 0
     if (lastDate && lastDate !== today && lastDate !== yesterdayStr) {
-        saveData(0, lastDate, null);
+        saveData(0, today, null);
         if (streakEl) streakEl.innerText = 0;
     } else {
         if (streakEl) streakEl.innerText = savedStreak;
@@ -100,16 +132,17 @@ async function init() {
     renderTasks();
 
     try {
-        const response = await fetch('questions.json');
+        const response = await fetch('./questions.json');
         allQuestions = await response.json();
-    } catch (e) { console.error("Data Load Error", e); }
+    } catch (e) { console.error("JSON Load Error", e); }
 }
 
 function initGuestMode() {
+    const streakEl = document.getElementById('streak-count');
+    if (streakEl) streakEl.innerText = 0; // Guests start at 0
     init();
 }
 
-// Helper to save to BOTH Cloud and LocalStorage
 async function saveData(newStreak, newDate, newTasks) {
     if (newStreak !== null) localStorage.setItem('upsc_streak', newStreak);
     if (newDate !== null) localStorage.setItem('upsc_last_date', newDate);
@@ -121,6 +154,7 @@ async function saveData(newStreak, newDate, newTasks) {
         if (newDate !== null) updateObj.last_date = newDate;
         if (newTasks !== null) updateObj.tasks = newTasks;
         await db.collection('users').doc(currentUser.uid).update(updateObj);
+        updateLeaderboard(); 
     }
 }
 
@@ -128,10 +162,6 @@ async function saveData(newStreak, newDate, newTasks) {
 window.startFilteredQuiz = (subject) => {
     currentIdx = 0; score = 0;
     let filtered = (subject === 'All') ? allQuestions : allQuestions.filter(q => q.subject === subject);
-    if (subject === 'Review') {
-        const mistakes = JSON.parse(localStorage.getItem('upsc_mistakes')) || [];
-        filtered = allQuestions.filter(q => mistakes.includes(q.id));
-    }
     if (filtered.length === 0) return alert("No questions found!");
     quizData = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
@@ -144,7 +174,7 @@ function showQuestion() {
     container.innerHTML = `
         <div class="quiz-box animate-in">
             <div class="quiz-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <span>Subject: <b>${q.subject || 'General'}</b></span>
+                <span>Subject: <b>${q.subject}</b></span>
                 <span>${currentIdx + 1}/${quizData.length}</span>
             </div>
             <p class="question-text">${q.q}</p>
@@ -156,8 +186,6 @@ function showQuestion() {
 
 window.handleSelect = (idx) => {
     if (idx === quizData[currentIdx].ans) score++;
-    else saveMistake(quizData[currentIdx].id);
-
     currentIdx++;
     if (currentIdx < quizData.length) showQuestion();
     else showResults();
@@ -215,11 +243,3 @@ window.toggleTask = (index) => {
     saveData(null, null, tasks);
     renderTasks();
 };
-
-function saveMistake(id) {
-    let mistakes = JSON.parse(localStorage.getItem('upsc_mistakes')) || [];
-    if (!mistakes.includes(id)) {
-        mistakes.push(id);
-        localStorage.setItem('upsc_mistakes', JSON.stringify(mistakes));
-    }
-}
