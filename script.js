@@ -43,6 +43,7 @@ auth.onAuthStateChanged((user) => {
     } else {
         init();
         updateLeaderboard(); 
+        renderCalendar(); // Render empty calendar for guests
     }
 });
 
@@ -58,6 +59,50 @@ function updateUI(user) {
     }
 }
 
+// --- CALENDAR HEATMAP LOGIC ---
+function renderCalendar() {
+    const container = document.getElementById('calendar-days');
+    if (!container) return;
+
+    const now = new Date();
+    const monthLabel = document.getElementById('month-label');
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
+    
+    if (monthLabel) monthLabel.innerText = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+
+    // Get completed dates from LocalStorage
+    const completedDates = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
+
+    container.innerHTML = '';
+
+    // Empty slots for start of month
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        container.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dayBox = document.createElement('div');
+        dayBox.classList.add('cal-day');
+        dayBox.innerText = d;
+
+        const dateKey = new Date(now.getFullYear(), now.getMonth(), d).toDateString();
+
+        if (d === now.getDate()) dayBox.classList.add('today');
+        
+        if (completedDates.includes(dateKey)) {
+            dayBox.classList.add('completed');
+            dayBox.innerHTML = `${d}<span class="tick">✅</span>`;
+        }
+
+        container.appendChild(dayBox);
+    }
+}
+
 // --- DATA SYNC ---
 async function syncCloudData(user) {
     const userRef = db.collection('users').doc(user.uid);
@@ -68,6 +113,7 @@ async function syncCloudData(user) {
         localStorage.setItem('upsc_points', data.points || 0);
         localStorage.setItem('upsc_history', JSON.stringify(data.history || {}));
         localStorage.setItem('upsc_last_date', data.last_date || "");
+        localStorage.setItem('upsc_completed_dates', JSON.stringify(data.completed_dates || []));
     }
     init();
     renderAllStats();
@@ -77,7 +123,7 @@ function renderAllStats() {
     updateStreakDisplay();
     updateLeaderboard();
     updateAnalytics();
-    if (typeof renderHeatmap === "function") renderHeatmap();
+    renderCalendar();
 }
 
 function updateStreakDisplay() {
@@ -94,7 +140,7 @@ function updateAnalytics() {
     if(document.getElementById('solved-count')) document.getElementById('solved-count').innerText = totalSolved;
 }
 
-// --- CORE QUIZ LOGIC (DAILY 10 LIMIT) ---
+// --- CORE QUIZ LOGIC ---
 async function init() {
     try {
         const response = await fetch('./questions.json');
@@ -105,9 +151,8 @@ async function init() {
 window.startFilteredQuiz = (subject) => {
     const today = new Date().toDateString();
     
-    // 1. Check if Daily Limit Reached
     if (localStorage.getItem('upsc_last_date') === today && subject !== 'Review') {
-        return alert("You've completed your 10 questions for today! Practice your mistakes in 'Review' or come back tomorrow.");
+        return alert("You've completed your 10 questions for today! Practice in 'Review' or come back tomorrow.");
     }
 
     currentIdx = 0; score = 0;
@@ -122,7 +167,7 @@ window.startFilteredQuiz = (subject) => {
 
     if (pool.length === 0) return alert("Category empty!");
 
-    // 2. Select specific 10 for the day (deterministic based on date)
+    // Deterministic selection
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const startIndex = (dayOfYear * 10) % pool.length;
     quizData = pool.slice(startIndex, startIndex + 10);
@@ -151,6 +196,7 @@ function showQuestion() {
             </div>
             <div id="feedback-area" style="display:none; margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
                 <p style="font-size:0.85rem; color:#1e293b;"><strong>💡 Source:</strong> ${q.source || 'UPSC'}</p>
+                <p style="font-size:0.85rem; color:#475569; margin-top:5px;">${q.explanation || ''}</p>
                 <button onclick="nextStep()" class="btn-primary" style="width:100%; margin-top:10px;">Next Question →</button>
             </div>
         </div>`;
@@ -195,7 +241,12 @@ function showResults() {
     const container = document.getElementById('quiz-container');
     const today = new Date().toDateString();
     
-    // 3. Update Streak Logic
+    // Update Ticks for Calendar
+    let completed = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
+    if (!completed.includes(today)) completed.push(today);
+    localStorage.setItem('upsc_completed_dates', JSON.stringify(completed));
+
+    // Update Streak
     let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
     const lastDate = localStorage.getItem('upsc_last_date');
     const yesterday = new Date();
@@ -204,27 +255,30 @@ function showResults() {
     if (lastDate === yesterday.toDateString()) streak++;
     else if (lastDate !== today) streak = 1;
 
-    saveData(streak, today);
+    saveData(streak, today, completed);
     renderAllStats();
 
     container.innerHTML = `
         <div class="results-card" style="text-align:center; padding:40px;">
-            <div style="font-size:3rem;">🔥</div>
-            <h2>Streak: ${streak}</h2>
+            <div style="font-size:3rem;">✅</div>
+            <h2>Well Done, Officer!</h2>
             <p>Today's Score: ${score.toFixed(2)}/10</p>
-            <button class="whatsapp-btn" onclick="shareResults()" style="background:#25d366; color:white; padding:12px; border-radius:8px; border:none; width:100%; cursor:pointer;">Share Streak to WhatsApp</button>
-            <button onclick="location.reload()" style="margin-top:15px; background:none; border:none; color:blue; cursor:pointer;">Close</button>
+            <p>Current Streak: ${streak} Days</p>
+            <button class="whatsapp-btn" onclick="shareResults()" style="background:#25d366; color:white; padding:12px; border-radius:8px; border:none; width:100%; cursor:pointer; margin-top:10px;">Share Streak to WhatsApp</button>
+            <button onclick="location.reload()" style="margin-top:15px; background:none; border:none; color:blue; cursor:pointer; display:block; width:100%;">Return to Dashboard</button>
         </div>`;
 }
 
-async function saveData(s, d) {
+async function saveData(s, d, comp) {
     localStorage.setItem('upsc_streak', s);
     localStorage.setItem('upsc_last_date', d);
     
     if (currentUser) {
         await db.collection('users').doc(currentUser.uid).set({
+            name: currentUser.displayName,
             streak: s,
             last_date: d,
+            completed_dates: comp,
             points: parseInt(localStorage.getItem('upsc_points')) || 0
         }, { merge: true });
     }
@@ -240,9 +294,9 @@ async function updateLeaderboard() {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
     const snap = await db.collection('users').orderBy('points', 'desc').limit(5).get();
-    let html = '<table>';
+    let html = '<table style="width:100%; font-size:0.9rem;">';
     snap.forEach(doc => {
-        html += `<tr><td>${doc.data().name}</td><td style="text-align:right;">⭐ ${doc.data().points}</td></tr>`;
+        html += `<tr><td style="padding:5px 0;">${doc.data().name.split(' ')[0]}</td><td style="text-align:right; font-weight:700; color:var(--primary);">⭐ ${doc.data().points}</td></tr>`;
     });
     list.innerHTML = html + '</table>';
 }

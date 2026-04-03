@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrepTrack Dashboard | UPSC Daily Challenge</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="dashboard-body">
 
@@ -29,14 +30,17 @@
             <button class="filter-btn" onclick="startFilteredQuiz('Geography')">Geography</button>
             <button class="filter-btn" onclick="startFilteredQuiz('Economy')">Economy</button>
             <button class="filter-btn" onclick="startFilteredQuiz('Science')">Science</button>
-            <button class="filter-btn review-btn" onclick="startFilteredQuiz('Review')">Review Errors</button>
+            <button class="filter-btn review-btn" onclick="startFilteredQuiz('Review')">
+                <i class="fas fa-redo"></i> Review Errors
+            </button>
         </div>
     </div>
 
     <main class="dashboard-main">
+        
         <aside class="sidebar-left">
             <div class="card stats-card">
-                <h3>📊 Performance</h3>
+                <h3><i class="fas fa-chart-line"></i> Performance</h3>
                 <div class="stats-grid">
                     <div class="stat-box">
                         <span id="points-val">0</span>
@@ -47,16 +51,20 @@
                         <label>Solved</label>
                     </div>
                 </div>
-                <div class="progress-container" style="margin-top: 20px;">
-                    <p class="accuracy-text" style="font-size: 0.8rem; color: var(--text-muted);">Quest Progress (of 160)</p>
-                    <div class="progress-bar-bg" style="background:#e5e7eb; height:8px; border-radius:10px; margin-top:5px;">
-                        <div id="accuracy-fill" style="background:var(--primary); width:0%; height:100%; border-radius:10px; transition: width 0.5s;"></div>
+                
+                <div class="progress-container" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <p class="accuracy-text" style="font-size: 0.75rem; font-weight: 600; color: #64748b;">Quest Progress</p>
+                        <span style="font-size: 0.7rem; color: var(--primary); font-weight: 700;">160 Goal</span>
+                    </div>
+                    <div class="progress-bar-bg" style="background:#e2e8f0; height:10px; border-radius:20px; margin-top:8px; overflow: hidden;">
+                        <div id="accuracy-fill" style="background: linear-gradient(90deg, #2563eb, #3b82f6); width:0%; height:100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);"></div>
                     </div>
                 </div>
             </div>
 
             <div class="card leaderboard-card">
-                <h3>🏆 Global Rankings</h3>
+                <h3><i class="fas fa-crown"></i> Global Rankings</h3>
                 <div id="leaderboard-list">
                     <p class="loading">Loading officers...</p>
                 </div>
@@ -65,20 +73,29 @@
 
         <section class="quiz-workspace">
             <div class="card heatmap-card">
-                <h3>📅 Consistency Heatmap</h3>
-                <div id="heatmap-container" class="heatmap-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;"><i class="fas fa-calendar-alt"></i> Consistency Heatmap</h3>
+                    <span id="month-label" style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">April 2026</span>
+                </div>
+                
+                <div class="calendar-grid-labels" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.65rem; font-weight: 800; color: #94a3b8; margin-bottom: 5px;">
+                    <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+                </div>
+                <div id="calendar-days" class="heatmap-container">
                     </div>
-                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px;">
-                    Stay green to stay ahead.
+                
+                <p style="font-size: 0.75rem; color: #64748b; margin-top: 15px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-info-circle"></i> Finish your 10 daily questions to earn your green tick.
                 </p>
             </div>
 
             <div id="quiz-section" class="card main-quiz-card">
                 <div id="quiz-container">
-                    <div class="welcome-screen" style="text-align:center; padding: 40px 20px;">
-                        <h1 style="margin-bottom:15px;">Ready for the daily grind?</h1>
-                        <p style="color:var(--text-muted); margin-bottom:25px;">Solve 10 random UPSC PYQs. Beware of the -0.33 penalty!</p>
-                        <button class="btn-primary-large" onclick="startFilteredQuiz('All')" style="padding: 15px 40px; font-size: 1.1rem; border-radius: 10px; cursor: pointer; background: var(--primary); color: white; border: none; font-weight: 600;">
+                    <div class="welcome-screen" style="text-align:center; padding: 60px 20px;">
+                        <div style="font-size: 3.5rem; margin-bottom: 20px;">🇮🇳</div>
+                        <h1 style="margin-bottom:10px; font-weight: 800; letter-spacing: -0.5px;">Ready for the daily grind?</h1>
+                        <p style="color:#64748b; margin-bottom:30px; font-size: 1.05rem;">Solve 10 random UPSC PYQs. <br>Accuracy is the only currency here.</p>
+                        <button class="btn-primary-large" onclick="startFilteredQuiz('All')">
                             Start Today's Drill
                         </button>
                     </div>
@@ -88,30 +105,30 @@
 
         <aside class="sidebar-right">
             <div class="card todo-card">
-                <h3>🎯 Daily Targets</h3>
+                <h3><i class="fas fa-tasks"></i> Daily Targets</h3>
                 <div class="todo-input-group">
                     <input type="text" id="todo-input" placeholder="e.g. Laxmikanth Ch 1...">
-                    <button onclick="addTask()">+</button>
+                    <button onclick="addTask()"><i class="fas fa-plus"></i></button>
                 </div>
                 <ul id="todo-list"></ul>
             </div>
 
-            <div class="card viral-card" style="border: 1px solid #dcfce7; background: #f0fdf4;">
-                <h3 style="color: #166534;">🚀 Target: 500 Daily Officers</h3>
-                <p style="font-size: 0.85rem; margin-bottom: 15px;">Consistency is the key to LBSNAA 🇮🇳. Share your streak!</p>
-                <button onclick="shareResults()" class="whatsapp-btn" style="background:#25d366; color:white; width:100%; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer;">
-                    Share Streak on WhatsApp
+            <div class="card viral-card">
+                <div class="viral-badge">TARGET: 500 OFFICERS</div>
+                <p>Consistency is the only path to LBSNAA. Help us build the strongest community.</p>
+                <button onclick="shareResults()" class="whatsapp-btn">
+                    <i class="fab fa-whatsapp"></i> Share My Streak
                 </button>
             </div>
         </aside>
     </main>
 
-    <div id="success-modal" class="modal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
-        <div class="modal-content" style="background: white; margin: 15% auto; padding: 30px; border-radius: 15px; width: 300px; text-align: center;">
-            <span class="confetti" style="font-size: 3rem;">🎉</span>
+    <div id="success-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="confetti">🎉</span>
             <h2>Daily Task Complete!</h2>
-            <p>Your stats are synced to the cloud.</p>
-            <button onclick="location.reload()" class="btn-primary" style="margin-top:20px; padding:10px 20px;">Back to Dashboard</button>
+            <p>Officer, your progress is secured.</p>
+            <button onclick="location.reload()" class="btn-primary">Back to Dashboard</button>
         </div>
     </div>
 
