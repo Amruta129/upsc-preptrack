@@ -323,3 +323,98 @@ body, button, input {
     height: 100%;
     border-radius: 20px;
 }
+.progress-fill {
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+        90deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.3) 50%, 
+        rgba(255,255,255,0) 100%
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+/* --- COMMUNITY BUTTONS --- */
+.community-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.community-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: white;
+}
+
+.community-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.community-btn.whatsapp {
+    background: #25d366; /* WhatsApp Green */
+}
+
+.community-btn.telegram {
+    background: #0088cc; /* Telegram Blue */
+}
+
+.community-btn i {
+    font-size: 1.2rem;
+}
+/* --- UPDATED COMMUNITY LINKS --- */
+.community-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.community-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.community-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.community-btn.whatsapp { background: #25d366; }
+.community-btn.telegram { background: #0088cc; }
+.community-btn.youtube  { background: #ff0000; }
+
+.community-btn i {
+    font-size: 1.1rem;
+}
