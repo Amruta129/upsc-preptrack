@@ -51,40 +51,80 @@ function updateUI(user) {
     if (authArea) {
         authArea.innerHTML = `
             <div class="user-pill">
-                <img src="${user.photoURL}" class="user-img">
+                <img src="${user.photoURL}" class="user-img" style="width:25px; border-radius:50%; margin-right:8px;">
                 <span>Officer ${user.displayName.split(' ')[0]}</span>
-                <button onclick="handleLogout()" class="logout-btn">Logout</button>
+                <button onclick="handleLogout()" class="logout-btn" style="margin-left:10px; background:none; border:none; color:red; cursor:pointer; font-size:0.8rem;">Logout</button>
             </div>`;
     }
 }
 
-// --- DATA SYNC ---
+// --- DATA SYNC & ANALYTICS ---
 async function syncCloudData(user) {
     const userRef = db.collection('users').doc(user.uid);
     const doc = await userRef.get();
     if (doc.exists) {
         const data = doc.data();
         localStorage.setItem('upsc_streak', data.streak || 0);
-        localStorage.setItem('upsc_last_date', data.last_date || "");
+        localStorage.setItem('upsc_points', data.points || 0);
+        localStorage.setItem('upsc_history', JSON.stringify(data.history || {}));
         localStorage.setItem('upsc_tasks', JSON.stringify(data.tasks || []));
     } else {
         await userRef.set({
             name: user.displayName,
             streak: parseInt(localStorage.getItem('upsc_streak')) || 0,
-            last_date: localStorage.getItem('upsc_last_date') || "",
+            points: parseInt(localStorage.getItem('upsc_points')) || 0,
+            history: JSON.parse(localStorage.getItem('upsc_history')) || {},
             tasks: JSON.parse(localStorage.getItem('upsc_tasks')) || []
         });
     }
+    renderAllStats();
+}
+
+function renderAllStats() {
     updateStreakDisplay();
     renderTasks();
+    renderHeatmap();
     updateLeaderboard();
+    updateAnalytics();
+}
+
+function updateAnalytics() {
+    const pts = localStorage.getItem('upsc_points') || 0;
+    const history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
+    const totalSolved = Object.values(history).reduce((a, b) => a + b, 0);
+    
+    if(document.getElementById('points-val')) document.getElementById('points-val').innerText = pts;
+    if(document.getElementById('solved-count')) document.getElementById('solved-count').innerText = totalSolved;
+}
+
+// --- GITHUB-STYLE HEATMAP ---
+function renderHeatmap() {
+    const container = document.getElementById('heatmap-container');
+    if (!container) return;
+    const history = JSON.parse(localStorage.getItem('upsc_history')) || {};
+    
+    container.innerHTML = '';
+    // Show last 28 days
+    for (let i = 0; i < 28; i++) {
+        const day = new Date();
+        day.setDate(day.getDate() - (27 - i));
+        const dateStr = day.toDateString();
+        
+        const square = document.createElement('div');
+        square.className = 'heat-sq';
+        if (history[dateStr]) {
+            square.classList.add(history[dateStr] > 5 ? 'active-high' : 'active');
+        }
+        square.title = `${dateStr}: ${history[dateStr] || 0} questions`;
+        container.appendChild(square);
+    }
 }
 
 async function updateLeaderboard() {
     const leaderboardList = document.getElementById('leaderboard-list');
     if (!leaderboardList) return;
     try {
-        const snapshot = await db.collection('users').orderBy('streak', 'desc').limit(5).get();
+        const snapshot = await db.collection('users').orderBy('points', 'desc').limit(5).get();
         let html = '<table class="leaderboard-table">';
         let rank = 1;
         snapshot.forEach(doc => {
@@ -94,7 +134,7 @@ async function updateLeaderboard() {
                 <tr class="${isMe ? 'highlight-me' : ''}">
                     <td>${rank}</td>
                     <td>${data.name || "Officer"}</td>
-                    <td style="text-align:right">🔥 ${data.streak || 0}</td>
+                    <td style="text-align:right">⭐ ${data.points || 0}</td>
                 </tr>`;
             rank++;
         });
@@ -102,10 +142,9 @@ async function updateLeaderboard() {
     } catch (e) { console.error(e); }
 }
 
-// --- CORE APP LOGIC ---
+// --- CORE QUIZ LOGIC ---
 async function init() {
-    updateStreakDisplay();
-    renderTasks();
+    renderAllStats();
     try {
         const response = await fetch('./questions.json');
         allQuestions = await response.json();
@@ -119,14 +158,13 @@ function updateStreakDisplay() {
     if (streakEl) streakEl.innerText = localStorage.getItem('upsc_streak') || 0;
 }
 
-// --- LEETCODE-STYLE QUIZ LOGIC ---
 window.startFilteredQuiz = (subject) => {
     currentIdx = 0; score = 0;
     let filtered = [];
 
     if (subject === 'Review') {
         filtered = allQuestions.filter(q => wrongQuestions.includes(q.id));
-        if (filtered.length === 0) return alert("No wrong answers to review yet! Practice more first.");
+        if (filtered.length === 0) return alert("No mistakes to review! Keep practicing.");
     } else if (subject === 'All') {
         filtered = allQuestions;
     } else {
@@ -135,14 +173,12 @@ window.startFilteredQuiz = (subject) => {
 
     quizData = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
-    document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
 };
 
 function showQuestion() {
     const container = document.getElementById('quiz-container');
     const q = quizData[currentIdx];
     
-    // Determine Difficulty Tag (LeetCode Style)
     let difficulty = q.id % 3 === 0 ? 'Hard' : (q.id % 2 === 0 ? 'Medium' : 'Easy');
     let diffColor = difficulty === 'Easy' ? '#00b8a3' : (difficulty === 'Medium' ? '#ffb800' : '#ff2d55');
 
@@ -170,19 +206,21 @@ window.handleSelect = (idx) => {
     const buttons = document.querySelectorAll('.option-row');
     buttons.forEach(btn => btn.disabled = true);
 
+    let pointsEarned = 0;
     if (idx === q.ans) {
         score += 1;
+        pointsEarned = 10;
         buttons[idx].classList.add('correct');
-        // If they got it right, remove from wrong pool
         wrongQuestions = wrongQuestions.filter(id => id !== q.id);
     } else {
-        score -= 0.33; // UPSC Negative Marking
+        score -= 0.33;
+        pointsEarned = -2;
         buttons[idx].classList.add('wrong');
         buttons[q.ans].classList.add('correct');
-        // Add to wrong pool for later review
         if (!wrongQuestions.includes(q.id)) wrongQuestions.push(q.id);
     }
     
+    updatePoints(pointsEarned);
     localStorage.setItem('upsc_wrong_pool', JSON.stringify(wrongQuestions));
 
     setTimeout(() => {
@@ -192,33 +230,45 @@ window.handleSelect = (idx) => {
     }, 1200);
 };
 
+function updatePoints(pts) {
+    let p = parseInt(localStorage.getItem('upsc_points')) || 0;
+    p = Math.max(0, p + pts); // Don't go below 0
+    localStorage.setItem('upsc_points', p);
+    updateAnalytics();
+}
+
 function showResults() {
     const container = document.getElementById('quiz-container');
-    const finalScore = score.toFixed(2);
+    const today = new Date().toDateString();
+    
+    // Update History for Heatmap
+    let history = JSON.parse(localStorage.getItem('upsc_history')) || {};
+    history[today] = (history[today] || 0) + quizData.length;
     
     // Streak Logic
-    const today = new Date().toDateString();
+    let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
     if (localStorage.getItem('upsc_last_date') !== today) {
-        let streak = parseInt(localStorage.getItem('upsc_streak') || 0) + 1;
-        saveData(streak, today, null);
-        updateStreakDisplay();
+        streak++;
     }
 
+    saveData(streak, today, null, history, localStorage.getItem('upsc_points'));
+    renderAllStats();
+
     container.innerHTML = `
-        <div class="results-card">
-            <div class="status-icon">${score >= 6 ? '🏆' : '📚'}</div>
-            <h2>Session Result</h2>
-            <div class="score-display">
-                <span class="score-num">${finalScore}</span>
-                <span class="score-total">/ ${quizData.length}</span>
-            </div>
-            <p class="penalty-note">Includes -0.33 negative marking</p>
-            <div class="result-actions">
-                <button class="btn-primary" onclick="startFilteredQuiz('All')">Next Drill</button>
-                <button class="btn-outline" onclick="startFilteredQuiz('Review')">Review Mistakes (${wrongQuestions.length})</button>
-            </div>
+        <div class="results-card" style="text-align:center; padding:40px;">
+            <h1 style="font-size:3rem;">${score >= 6 ? '🦁' : '📖'}</h1>
+            <h2>Session Finished!</h2>
+            <p>You scored <strong>${score.toFixed(2)}</strong></p>
+            <button class="whatsapp-btn" onclick="shareResults()">Share on WhatsApp</button>
+            <button class="btn-primary" onclick="location.reload()" style="margin-top:10px;">Back to Dashboard</button>
         </div>`;
 }
+
+window.shareResults = () => {
+    const streak = localStorage.getItem('upsc_streak');
+    const text = `🔥 My UPSC Streak is ${streak} Days on PrepTrack! \nTarget: LBSNAA 🇮🇳\nJoin me in the daily grind: [YOUR_URL]`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+};
 
 // --- TASKS ---
 window.renderTasks = () => {
@@ -234,10 +284,10 @@ window.renderTasks = () => {
 
 window.addTask = () => {
     const input = document.getElementById('todo-input');
-    if (!input.value.trim()) return;
+    if (!input || !input.value.trim()) return;
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
     tasks.push({ text: input.value, completed: false });
-    saveData(null, null, tasks);
+    saveData(null, null, tasks, null, null);
     input.value = '';
     renderTasks();
 };
@@ -245,21 +295,26 @@ window.addTask = () => {
 window.toggleTask = (i) => {
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
     tasks[i].completed = !tasks[i].completed;
-    saveData(null, null, tasks);
+    saveData(null, null, tasks, null, null);
     renderTasks();
 };
 
-async function saveData(s, d, t) {
+async function saveData(s, d, t, h, pts) {
     if (s !== null) localStorage.setItem('upsc_streak', s);
     if (d !== null) localStorage.setItem('upsc_last_date', d);
     if (t !== null) localStorage.setItem('upsc_tasks', JSON.stringify(t));
+    if (h !== null) localStorage.setItem('upsc_history', JSON.stringify(h));
+    
     if (currentUser) {
         const obj = {};
         if (s !== null) obj.streak = s;
         if (d !== null) obj.last_date = d;
         if (t !== null) obj.tasks = t;
-        await db.collection('users').doc(currentUser.uid).update(obj);
-        updateLeaderboard();
+        if (h !== null) obj.history = h;
+        if (pts !== null) obj.points = parseInt(pts);
+        await db.collection('users').doc(currentUser.uid).update(obj).catch(async () => {
+             await db.collection('users').doc(currentUser.uid).set(obj, {merge: true});
+        });
     }
 }
 

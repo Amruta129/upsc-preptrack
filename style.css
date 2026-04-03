@@ -1,6 +1,7 @@
-/* 1. GLOBAL OVERHAUL */
+/* 1. GLOBAL OVERHAUL & VARIABLES */
 :root {
     --primary: #4f46e5;
+    --primary-light: #eef2ff;
     --primary-dark: #3730a3;
     --bg-main: #f3f4f6;
     --bg-card: #ffffff;
@@ -10,6 +11,7 @@
     --medium: #ffb800;
     --hard: #ff2d55;
     --border: #e5e7eb;
+    --whatsapp: #25d366;
 }
 
 * {
@@ -35,188 +37,175 @@ body {
 }
 
 .nav-container {
-    width: 95%;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    width: 95%; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
 }
 
 .logo {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: -0.5px;
+    font-size: 1.2rem; font-weight: 700;
+    color: var(--primary); letter-spacing: -0.5px;
 }
 
 .badge-amruta {
-    background: #fdf2f8;
-    color: #db2777;
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: 5px;
+    background: #fdf2f8; color: #db2777;
+    font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; margin-left: 5px;
 }
 
-/* 3. LEETCODE STYLE DASHBOARD GRID */
+/* 3. DASHBOARD GRID (3-Columns) */
 .dashboard-main {
     display: grid;
     grid-template-columns: 280px 1fr 320px;
     gap: 20px;
-    max-width: 1400px;
+    max-width: 1440px;
     margin: 20px auto;
     padding: 0 20px;
 }
 
-/* 4. SIDEBARS & CARDS */
+/* 4. CARDS & SIDEBARS */
 .card {
     background: var(--bg-card);
     border-radius: 12px;
     border: 1px solid var(--border);
     padding: 20px;
     margin-bottom: 20px;
+    transition: transform 0.2s ease;
 }
 
 .card h3 {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
     text-transform: uppercase;
     margin-bottom: 15px;
-    letter-spacing: 0.5px;
-}
-
-/* Progress Circle (LeetCode Style) */
-.progress-circle {
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    border: 10px solid #e5e7eb;
-    border-top-color: var(--primary);
-    margin: 10px auto;
+    letter-spacing: 0.8px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
 }
 
-.progress-circle span { font-size: 1.2rem; font-weight: 700; }
-.progress-circle small { font-size: 0.7rem; color: var(--text-muted); }
+/* 5. HEATMAP (GitHub Style) */
+.heatmap-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-top: 10px;
+}
 
-/* 5. QUIZ WORKSPACE */
-.quiz-workspace { min-height: 80vh; }
+.heat-sq {
+    aspect-ratio: 1;
+    background: #ebedf0;
+    border-radius: 2px;
+    cursor: pointer;
+}
 
+.heat-sq.active { background: #22c55e; }
+.heat-sq.active-high { background: #15803d; } /* For multiple quizzes in one day */
+
+/* 6. LEADERBOARD STYLES */
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-table td {
+    padding: 12px 4px;
+    font-size: 0.9rem;
+}
+
+.highlight-me {
+    background: var(--primary-light);
+    border-radius: 8px;
+}
+
+/* 7. QUIZ WORKSPACE */
 .main-quiz-card {
-    min-height: 400px;
+    min-height: 500px;
     border-top: 4px solid var(--primary);
 }
 
-.quiz-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 10px;
-}
-
-.subject-tag {
-    background: #eef2ff;
-    color: var(--primary);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.question-text {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 25px;
-    color: #111827;
-}
-
-/* Option Buttons (Premium Look) */
 .option-row {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    background: #f9fafb;
-    border: 1px solid var(--border);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    width: 100%; display: flex; align-items: center;
+    background: #f9fafb; border: 1px solid var(--border);
+    padding: 16px; border-radius: 10px;
+    margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease;
 }
 
 .option-row:hover {
-    background: #ffffff;
-    border-color: var(--primary);
+    background: #ffffff; border-color: var(--primary);
+    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.opt-letter {
-    width: 30px; height: 30px;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    font-weight: 700;
-    color: var(--text-muted);
+.option-row.correct { background: #dcfce7; border-color: #22c55e; color: #166534; font-weight: 600;}
+.option-row.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b;}
+
+/* 8. ANALYTICS STATS */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
 }
 
-/* Feedback Colors */
-.option-row.correct { background: #dcfce7; border-color: #22c55e; }
-.option-row.wrong { background: #fee2e2; border-color: #ef4444; }
-
-/* 6. TODO LIST STYLES */
-#todo-list { list-style: none; }
-.task-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid #f3f4f6;
-    font-size: 0.9rem;
-}
-.task-item span.done { text-decoration: line-through; color: var(--text-muted); }
-
-/* 7. FILTER BAR (STICKY) */
-.filter-bar {
-    background: #ffffff;
-    border-bottom: 1px solid var(--border);
-    padding: 10px 0;
-    position: sticky;
-    top: 60px; z-index: 999;
-}
-
-.filter-container {
-    width: 95%; margin: 0 auto;
-    display: flex; gap: 10px; overflow-x: auto;
-}
-
-.filter-btn {
-    padding: 6px 15px;
+.stat-box {
+    background: #f9fafb;
+    padding: 12px;
     border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--text-muted);
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
+    text-align: center;
 }
 
-.filter-btn:hover, .filter-btn.active {
-    background: #f3f4f6;
+.stat-box span {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: var(--primary);
 }
 
-.review-btn { color: #ef4444; font-weight: 700; }
+.stat-box label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
 
-/* 8. RESPONSIVE */
-@media (max-width: 1100px) {
+/* 9. VIRAL SHARE BUTTON */
+.whatsapp-btn {
+    width: 100%;
+    background: var(--whatsapp);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.whatsapp-btn:hover { background: #22c05b; }
+
+/* 10. TODO & TASKS */
+.task-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+
+.task-item span.done { text-decoration: line-through; color: var(--text-muted); }
+
+/* 11. RESPONSIVE */
+@media (max-width: 1200px) {
+    .dashboard-main {
+        grid-template-columns: 1fr 1.5fr;
+    }
+    .sidebar-right { grid-column: span 2; }
+}
+
+@media (max-width: 800px) {
     .dashboard-main {
         grid-template-columns: 1fr;
     }

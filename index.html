@@ -36,29 +36,51 @@
     <main class="dashboard-main">
         <aside class="sidebar-left">
             <div class="card stats-card">
-                <h3>Your Progress</h3>
-                <div class="progress-circle">
-                    <span id="solved-count">0/160</span>
-                    <small>Solved</small>
+                <h3>📊 Performance</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span id="points-val">0</span>
+                        <label>Points</label>
+                    </div>
+                    <div class="stat-box">
+                        <span id="solved-count">0</span>
+                        <label>Solved</label>
+                    </div>
                 </div>
-                <p class="accuracy-text">Accuracy: <span id="accuracy">0%</span></p>
+                <div class="progress-container" style="margin-top: 20px;">
+                    <p class="accuracy-text" style="font-size: 0.8rem; color: var(--text-muted);">Current Accuracy</p>
+                    <div class="progress-bar-bg" style="background:#e5e7eb; height:8px; border-radius:10px; margin-top:5px;">
+                        <div id="accuracy-fill" style="background:var(--primary); width:0%; height:100%; border-radius:10px; transition: width 0.5s;"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="card leaderboard-card">
-                <h3>🏆 Top Officers</h3>
+                <h3>🏆 Global Rankings</h3>
                 <div id="leaderboard-list">
-                    <p class="loading">Loading rankings...</p>
+                    <p class="loading">Loading officers...</p>
                 </div>
             </div>
         </aside>
 
         <section class="quiz-workspace">
+            <div class="card heatmap-card">
+                <h3>📅 Consistency Heatmap</h3>
+                <div id="heatmap-container" class="heatmap-container">
+                    </div>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px;">
+                    Stay green to stay ahead.
+                </p>
+            </div>
+
             <div id="quiz-section" class="card main-quiz-card">
                 <div id="quiz-container">
-                    <div class="welcome-screen">
-                        <h1>Ready for the daily grind?</h1>
-                        <p>10 random UPSC PYQs with -0.33 negative marking.</p>
-                        <button class="btn-primary-large" onclick="startFilteredQuiz('All')">Start Practice</button>
+                    <div class="welcome-screen" style="text-align:center; padding: 40px 20px;">
+                        <h1 style="margin-bottom:15px;">Ready for the daily grind?</h1>
+                        <p style="color:var(--text-muted); margin-bottom:25px;">Solve 10 random UPSC PYQs. Beware of the -0.33 penalty!</p>
+                        <button class="btn-primary-large" onclick="startFilteredQuiz('All')" style="padding: 15px 40px; font-size: 1.1rem; border-radius: 10px; cursor: pointer; background: var(--primary); color: white; border: none; font-weight: 600;">
+                            Start Today's Drill
+                        </button>
                     </div>
                 </div>
             </div>
@@ -68,16 +90,17 @@
             <div class="card todo-card">
                 <h3>🎯 Daily Targets</h3>
                 <div class="todo-input-group">
-                    <input type="text" id="todo-input" placeholder="Add task...">
+                    <input type="text" id="todo-input" placeholder="e.g. Laxmikanth Ch 1...">
                     <button onclick="addTask()">+</button>
                 </div>
                 <ul id="todo-list"></ul>
             </div>
 
-            <div class="card help-card">
-                <p>Clearing UPSC is about <strong>consistency</strong>, not just intensity.</p>
-                <button onclick="window.open('https://api.whatsapp.com/send?text=I am on a 🔥 streak on PrepTrack!')" class="whatsapp-btn">
-                    Share Progress
+            <div class="card viral-card" style="border: 1px solid #dcfce7; background: #f0fdf4;">
+                <h3 style="color: #166534;">🚀 Grow the Community</h3>
+                <p style="font-size: 0.85rem; margin-bottom: 15px;">Target: 500 Daily Officers. Share your progress to invite others!</p>
+                <button onclick="shareResults()" class="whatsapp-btn">
+                    Share Streak on WhatsApp
                 </button>
             </div>
         </aside>
@@ -85,10 +108,10 @@
 
     <div id="success-modal" class="modal" style="display:none;">
         <div class="modal-content">
-            <span class="confetti">🎉</span>
-            <h2>Streak Maintained!</h2>
-            <p>Your progress has been synced to the cloud.</p>
-            <button onclick="document.getElementById('success-modal').style.display='none'" class="btn-primary">Awesome</button>
+            <span class="confetti" style="font-size: 3rem;">🎉</span>
+            <h2>Session Complete!</h2>
+            <p>Your stats have been updated in the cloud.</p>
+            <button onclick="document.getElementById('success-modal').style.display='none'" class="btn-primary">Back to Dashboard</button>
         </div>
     </div>
 
