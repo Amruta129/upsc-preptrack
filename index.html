@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrepTrack Dashboard | UPSC Daily Challenge</title>
+    
+    <title>PrepTrack | Daily UPSC PYQ Challenge</title>
+    <meta name="description" content="Master UPSC Prelims with daily 10-question drills, consistency heatmaps, and real-time performance analytics. Solve high-yield PYQs.">
+    <meta name="keywords" content="UPSC Prelims 2026, IAS Exam Prep, UPSC PYQ Quiz, GS Practice, Amruta PrepTrack">
+    
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="dashboard-body">
@@ -14,7 +18,7 @@
         <div class="nav-container">
             <div class="logo">PrepTrack <span class="badge-amruta">w/ Amruta</span></div>
             <div class="nav-right">
-                <div class="streak-pill">🔥 <span id="streak-count">0</span></div>
+                <div class="streak-pill">🔥 <span id="streak-count">0</span> Days</div>
                 <div id="auth-area">
                     <button class="btn-signin" onclick="handleLogin()">Sign In</button>
                 </div>
@@ -24,7 +28,7 @@
 
     <div class="filter-bar">
         <div class="filter-container">
-            <button class="filter-btn active" onclick="startFilteredQuiz('All')">All</button>
+            <button class="filter-btn active" onclick="startFilteredQuiz('All')">All Subjects</button>
             <button class="filter-btn" onclick="startFilteredQuiz('History')">History</button>
             <button class="filter-btn" onclick="startFilteredQuiz('Polity')">Polity</button>
             <button class="filter-btn" onclick="startFilteredQuiz('Geography')">Geography</button>
@@ -39,26 +43,26 @@
     <main class="dashboard-main">
         
         <aside class="sidebar-left">
-            <div class="card stats-card">
-                <h3><i class="fas fa-chart-line"></i> Performance</h3>
+            <div class="card stats-card mastery-theme">
+                <h3><i class="fas fa-rocket"></i> Mastery Level</h3>
                 <div class="stats-grid">
                     <div class="stat-box">
                         <span id="points-val">0</span>
-                        <label>Points</label>
+                        <label>XP Earned</label>
                     </div>
                     <div class="stat-box">
                         <span id="solved-count">0</span>
-                        <label>Solved</label>
+                        <label>Total Solved</label>
                     </div>
                 </div>
                 
                 <div class="progress-container" style="margin-top: 25px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <p id="quest-progress-text" style="font-size: 0.75rem; font-weight: 600; color: #64748b;">Quest Progress (of 250)</p>
-                        <span style="font-size: 0.7rem; color: #6366f1; font-weight: 700;">250 Goal</span>
+                        <p id="quest-progress-text" style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1;">Quest Progress</p>
+                        <span class="goal-tag">250 Goal</span>
                     </div>
-                    <div class="progress-bar-bg" style="background:#e2e8f0; height:10px; border-radius:20px; margin-top:8px; overflow: hidden;">
-                        <div id="progress-bar-fill" style="background: linear-gradient(90deg, #6366f1, #a855f7); width:0%; height:100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar-fill" class="progress-fill"></div>
                     </div>
                 </div>
             </div>
@@ -66,38 +70,32 @@
             <div class="card leaderboard-card">
                 <h3><i class="fas fa-crown"></i> Global Rankings</h3>
                 <div id="leaderboard-list">
-                    <p class="loading">Loading officers...</p>
+                    <p class="loading">Syncing rankings...</p>
                 </div>
             </div>
         </aside>
 
         <section class="quiz-workspace">
             <div class="card heatmap-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0;"><i class="fas fa-calendar-alt"></i> Consistency Heatmap</h3>
-                    <span id="month-label" style="font-size: 0.85rem; font-weight: 700; color: #6366f1;">April 2026</span>
+                <div class="heatmap-header">
+                    <h3 style="margin: 0;"><i class="fas fa-calendar-check"></i> Consistency</h3>
+                    <span id="month-label" class="current-month">April 2026</span>
                 </div>
                 
-                <div class="calendar-grid-labels" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.65rem; font-weight: 800; color: #94a3b8; margin-bottom: 5px;">
+                <div class="calendar-grid-labels">
                     <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
                 </div>
-                
-                <div id="calendar-days" class="heatmap-container" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">
-                </div>
-                
-                <p style="font-size: 0.75rem; color: #64748b; margin-top: 15px; display: flex; align-items: center; gap: 5px;">
-                    <i class="fas fa-info-circle"></i> Finish your 10 daily questions to earn your green tick.
-                </p>
+                <div id="calendar-days" class="heatmap-container"></div>
             </div>
 
             <div id="quiz-section" class="card main-quiz-card">
                 <div id="quiz-container">
-                    <div class="welcome-screen" style="text-align:center; padding: 60px 20px;">
-                        <div style="font-size: 3.5rem; margin-bottom: 20px;">🇮🇳</div>
-                        <h1 style="margin-bottom:10px; font-weight: 800; letter-spacing: -0.5px;">Ready for the daily grind?</h1>
-                        <p style="color:#64748b; margin-bottom:30px; font-size: 1.05rem;">Solve 10 random UPSC PYQs. <br>Accuracy is the only currency here.</p>
-                        <button class="btn-primary-large" onclick="startFilteredQuiz('All')">
-                            Start Today's Drill
+                    <div class="welcome-screen">
+                        <div class="hero-icon">🏛️</div>
+                        <h1>Daily UPSC Mission</h1>
+                        <p>Sharpen your accuracy with today's 10-question high-yield drill.</p>
+                        <button class="btn-primary-large pulse-btn" onclick="startFilteredQuiz('All')">
+                            Begin Today's Drill
                         </button>
                     </div>
                 </div>
@@ -108,35 +106,25 @@
             <div class="card todo-card">
                 <h3><i class="fas fa-tasks"></i> Daily Targets</h3>
                 <div class="todo-input-group">
-                    <input type="text" id="todo-input" placeholder="e.g. Laxmikanth Ch 1...">
+                    <input type="text" id="todo-input" placeholder="Laxmikanth Ch 1...">
                     <button onclick="addTask()"><i class="fas fa-plus"></i></button>
                 </div>
                 <ul id="todo-list"></ul>
             </div>
 
             <div class="card viral-card">
-                <div class="viral-badge">TARGET: 500 OFFICERS</div>
-                <p>Consistency is the only path to LBSNAA. Help us build the strongest community.</p>
+                <h3><i class="fas fa-share-alt"></i> Aspirant Network</h3>
+                <p>The path to LBSNAA is better with peers. Challenge a friend to beat your streak.</p>
                 <button onclick="shareResults()" class="whatsapp-btn">
-                    <i class="fab fa-whatsapp"></i> Share My Streak
+                    <i class="fab fa-whatsapp"></i> Invite to PrepTrack
                 </button>
             </div>
         </aside>
     </main>
 
-    <div id="success-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span class="confetti">🎉</span>
-            <h2>Daily Task Complete!</h2>
-            <p>Officer, your progress is secured.</p>
-            <button onclick="location.reload()" class="btn-primary">Back to Dashboard</button>
-        </div>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
     <script src="script.js"></script>
 </body>
 </html>

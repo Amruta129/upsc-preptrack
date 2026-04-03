@@ -234,3 +234,92 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 .animate-in { animation: slideUp 0.5s ease-out; }
+/* --- PREMIUM UI ENHANCEMENTS --- */
+
+/* Modern Font Overwrite */
+body, button, input {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+/* Dark Mastery Card Theme */
+.mastery-theme {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.mastery-theme .stat-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mastery-theme .stat-box span {
+    color: #fbbf24 !important; /* Gold points */
+}
+
+.goal-tag {
+    font-size: 0.65rem;
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 800;
+}
+
+/* Attractive Welcome Screen */
+.welcome-screen .hero-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+}
+
+.welcome-screen h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(to right, #1e293b, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+/* Pulsing Start Button */
+.pulse-btn {
+    background: var(--primary);
+    border: none;
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+    animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Heatmap Header Polish */
+.heatmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.current-month {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+/* Privacy Fix: Hide viral badges if they contain sensitive text */
+.viral-badge {
+    display: none !important; /* Removes the "500 Officers" tag completely */
+}
+
+/* Progress Fill Color */
+.progress-fill {
+    background: linear-gradient(90deg, #4f46e5, #06b6d4);
+    height: 100%;
+    border-radius: 20px;
+}
