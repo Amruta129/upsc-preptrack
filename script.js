@@ -51,9 +51,9 @@ function updateUI(user) {
     if (authArea) {
         authArea.innerHTML = `
             <div class="user-pill">
-                <img src="${user.photoURL}" class="user-img" style="width:25px; border-radius:50%; margin-right:8px;">
-                <span>Officer ${user.displayName.split(' ')[0]}</span>
-                <button onclick="handleLogout()" class="logout-btn" style="margin-left:10px; background:none; border:none; color:red; cursor:pointer; font-size:0.8rem;">Logout</button>
+                <img src="${user.photoURL}" class="user-img" style="width:25px; border-radius:50%; margin-right:8px; vertical-align:middle;">
+                <span style="font-size:0.85rem; font-weight:600;">Officer ${user.displayName.split(' ')[0]}</span>
+                <button onclick="handleLogout()" class="logout-btn" style="margin-left:8px; background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.75rem;">Logout</button>
             </div>`;
     }
 }
@@ -75,7 +75,7 @@ async function syncCloudData(user) {
             points: parseInt(localStorage.getItem('upsc_points')) || 0,
             history: JSON.parse(localStorage.getItem('upsc_history')) || {},
             tasks: JSON.parse(localStorage.getItem('upsc_tasks')) || []
-        });
+        }, { merge: true });
     }
     renderAllStats();
 }
@@ -95,6 +95,13 @@ function updateAnalytics() {
     
     if(document.getElementById('points-val')) document.getElementById('points-val').innerText = pts;
     if(document.getElementById('solved-count')) document.getElementById('solved-count').innerText = totalSolved;
+    
+    // Simple accuracy fill logic (Total Solved vs 160 Target)
+    const fill = document.getElementById('accuracy-fill');
+    if(fill) {
+        let percent = (totalSolved / 160) * 100;
+        fill.style.width = Math.min(100, percent) + '%';
+    }
 }
 
 // --- GITHUB-STYLE HEATMAP ---
@@ -104,7 +111,6 @@ function renderHeatmap() {
     const history = JSON.parse(localStorage.getItem('upsc_history')) || {};
     
     container.innerHTML = '';
-    // Show last 28 days
     for (let i = 0; i < 28; i++) {
         const day = new Date();
         day.setDate(day.getDate() - (27 - i));
@@ -113,9 +119,9 @@ function renderHeatmap() {
         const square = document.createElement('div');
         square.className = 'heat-sq';
         if (history[dateStr]) {
-            square.classList.add(history[dateStr] > 5 ? 'active-high' : 'active');
+            square.classList.add(history[dateStr] > 10 ? 'active-high' : 'active');
         }
-        square.title = `${dateStr}: ${history[dateStr] || 0} questions`;
+        square.title = `${dateStr}: ${history[dateStr] || 0} MCQs`;
         container.appendChild(square);
     }
 }
@@ -132,9 +138,9 @@ async function updateLeaderboard() {
             const isMe = currentUser && doc.id === currentUser.uid;
             html += `
                 <tr class="${isMe ? 'highlight-me' : ''}">
-                    <td>${rank}</td>
-                    <td>${data.name || "Officer"}</td>
-                    <td style="text-align:right">⭐ ${data.points || 0}</td>
+                    <td style="font-weight:700; color:#6366f1;">#${rank}</td>
+                    <td style="font-size:0.85rem;">${data.name || "Officer"}</td>
+                    <td style="text-align:right; font-weight:600;">⭐ ${data.points || 0}</td>
                 </tr>`;
             rank++;
         });
@@ -164,13 +170,14 @@ window.startFilteredQuiz = (subject) => {
 
     if (subject === 'Review') {
         filtered = allQuestions.filter(q => wrongQuestions.includes(q.id));
-        if (filtered.length === 0) return alert("No mistakes to review! Keep practicing.");
+        if (filtered.length === 0) return alert("No mistakes found! Start a new drill.");
     } else if (subject === 'All') {
         filtered = allQuestions;
     } else {
         filtered = allQuestions.filter(q => q.subject.toLowerCase() === subject.toLowerCase());
     }
 
+    if (filtered.length === 0) return alert("No questions found for this category.");
     quizData = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
 };
@@ -184,12 +191,15 @@ function showQuestion() {
 
     container.innerHTML = `
         <div class="quiz-card animate-in">
-            <div class="quiz-meta">
-                <span class="subject-tag">${q.subject}</span>
-                <span style="color:${diffColor}; font-weight:bold; font-size:0.8rem;">${difficulty}</span>
-                <span class="q-count">${currentIdx + 1} / ${quizData.length}</span>
+            <div class="quiz-meta" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <span class="subject-tag" style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:0.75rem; font-weight:600;">${q.subject}</span>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="color:${diffColor}; font-weight:bold; font-size:0.75rem;">${difficulty}</span>
+                    <span style="font-size:0.75rem; color:#94a3b8;">${currentIdx + 1}/10</span>
+                </div>
             </div>
-            <h2 class="question-text">${q.q}</h2>
+            <h2 class="question-text" style="font-size:1.15rem; margin-bottom:20px; line-height:1.4;">${q.q}</h2>
+            
             <div class="options-container">
                 ${q.opts.map((opt, i) => `
                     <button class="option-row" onclick="handleSelect(${i})">
@@ -197,6 +207,18 @@ function showQuestion() {
                         <span class="opt-text">${opt}</span>
                     </button>
                 `).join('')}
+            </div>
+
+            <div id="feedback-area" style="display:none; margin-top:20px; border-top:1px solid #e2e8f0; padding-top:15px;">
+                <div style="background:#f8fafc; padding:12px; border-radius:8px; border-left:4px solid #4f46e5;">
+                    <p style="font-size:0.7rem; color:#64748b; text-transform:uppercase; margin-bottom:5px; font-weight:700;">
+                        Source: ${q.source || 'Official UPSC Archives'}
+                    </p>
+                    <p style="font-size:0.85rem; color:#1e293b; line-height:1.5;">
+                        <strong>💡 Insight:</strong> ${q.explanation || 'This question tests your conceptual clarity on the topic. Refer to NCERT for deeper context.'}
+                    </p>
+                </div>
+                <button onclick="nextStep()" class="btn-primary" style="width:100%; margin-top:15px; padding:12px; border-radius:8px;">Next Question →</button>
             </div>
         </div>`;
 }
@@ -222,17 +244,20 @@ window.handleSelect = (idx) => {
     
     updatePoints(pointsEarned);
     localStorage.setItem('upsc_wrong_pool', JSON.stringify(wrongQuestions));
+    
+    // Reveal professional feedback
+    document.getElementById('feedback-area').style.display = 'block';
+};
 
-    setTimeout(() => {
-        currentIdx++;
-        if (currentIdx < quizData.length) showQuestion();
-        else showResults();
-    }, 1200);
+window.nextStep = () => {
+    currentIdx++;
+    if (currentIdx < quizData.length) showQuestion();
+    else showResults();
 };
 
 function updatePoints(pts) {
     let p = parseInt(localStorage.getItem('upsc_points')) || 0;
-    p = Math.max(0, p + pts); // Don't go below 0
+    p = Math.max(0, p + pts);
     localStorage.setItem('upsc_points', p);
     updateAnalytics();
 }
@@ -241,11 +266,9 @@ function showResults() {
     const container = document.getElementById('quiz-container');
     const today = new Date().toDateString();
     
-    // Update History for Heatmap
     let history = JSON.parse(localStorage.getItem('upsc_history')) || {};
     history[today] = (history[today] || 0) + quizData.length;
     
-    // Streak Logic
     let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
     if (localStorage.getItem('upsc_last_date') !== today) {
         streak++;
@@ -256,17 +279,20 @@ function showResults() {
 
     container.innerHTML = `
         <div class="results-card" style="text-align:center; padding:40px;">
-            <h1 style="font-size:3rem;">${score >= 6 ? '🦁' : '📖'}</h1>
-            <h2>Session Finished!</h2>
-            <p>You scored <strong>${score.toFixed(2)}</strong></p>
-            <button class="whatsapp-btn" onclick="shareResults()">Share on WhatsApp</button>
-            <button class="btn-primary" onclick="location.reload()" style="margin-top:10px;">Back to Dashboard</button>
+            <div style="font-size:4rem; margin-bottom:10px;">${score >= 6 ? '🦁' : '📖'}</div>
+            <h2 style="margin-bottom:5px;">Drill Complete</h2>
+            <p style="color:#64748b; margin-bottom:20px;">Score: <span style="color:#1e293b; font-weight:800;">${score.toFixed(2)} / 10</span></p>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="whatsapp-btn" onclick="shareResults()" style="width:100%; padding:12px; border-radius:8px; background:#25d366; color:white; border:none; font-weight:600; cursor:pointer;">Share to WhatsApp</button>
+                <button onclick="location.reload()" style="background:none; border:none; color:#4f46e5; font-weight:600; cursor:pointer; margin-top:10px;">Back to Dashboard</button>
+            </div>
         </div>`;
 }
 
 window.shareResults = () => {
     const streak = localStorage.getItem('upsc_streak');
-    const text = `🔥 My UPSC Streak is ${streak} Days on PrepTrack! \nTarget: LBSNAA 🇮🇳\nJoin me in the daily grind: [YOUR_URL]`;
+    const text = `🔥 My UPSC Streak is ${streak} Days on PrepTrack! \nConsistency is the key to LBSNAA 🇮🇳\nStart your drill here: [YOUR_URL]`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
 };
 
@@ -276,9 +302,9 @@ window.renderTasks = () => {
     if (!taskList) return;
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
     taskList.innerHTML = tasks.map((task, i) => `
-        <li class="task-item">
+        <li class="task-item" style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #f1f5f9;">
             <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
-            <span class="${task.completed ? 'done' : ''}">${task.text}</span>
+            <span style="${task.completed ? 'text-decoration:line-through; color:#94a3b8;' : ''}; font-size:0.9rem;">${task.text}</span>
         </li>`).join('');
 };
 
@@ -312,9 +338,8 @@ async function saveData(s, d, t, h, pts) {
         if (t !== null) obj.tasks = t;
         if (h !== null) obj.history = h;
         if (pts !== null) obj.points = parseInt(pts);
-        await db.collection('users').doc(currentUser.uid).update(obj).catch(async () => {
-             await db.collection('users').doc(currentUser.uid).set(obj, {merge: true});
-        });
+        await db.collection('users').doc(currentUser.uid).set(obj, { merge: true });
+        updateLeaderboard();
     }
 }
 
