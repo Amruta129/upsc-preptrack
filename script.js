@@ -9,10 +9,7 @@ const firebaseConfig = {
     measurementId: "G-6EXX7XY7T2"
 };
 
-// Initialize Firebase only if not already initialized
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -21,6 +18,7 @@ let quizData = [];
 let currentIdx = 0;
 let score = 0;
 let currentUser = null;
+let wrongQuestions = JSON.parse(localStorage.getItem('upsc_wrong_pool')) || [];
 
 // --- AUTH LOGIC ---
 window.handleLogin = () => {
@@ -52,26 +50,23 @@ function updateUI(user) {
     const authArea = document.getElementById('auth-area');
     if (authArea) {
         authArea.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; background:#f1f5f9; padding:5px 12px; border-radius:20px;">
-                <img src="${user.photoURL}" style="width:28px; border-radius:50%;">
-                <span style="font-weight:600; font-size:0.85rem; color:#1e293b;">Officer ${user.displayName.split(' ')[0]}</span>
-                <button onclick="handleLogout()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.75rem; margin-left:5px;">Logout</button>
-            </div>
-        `;
+            <div class="user-pill">
+                <img src="${user.photoURL}" class="user-img">
+                <span>Officer ${user.displayName.split(' ')[0]}</span>
+                <button onclick="handleLogout()" class="logout-btn">Logout</button>
+            </div>`;
     }
 }
 
-// --- DATA SYNC & LEADERBOARD ---
+// --- DATA SYNC ---
 async function syncCloudData(user) {
     const userRef = db.collection('users').doc(user.uid);
     const doc = await userRef.get();
-
     if (doc.exists) {
         const data = doc.data();
         localStorage.setItem('upsc_streak', data.streak || 0);
         localStorage.setItem('upsc_last_date', data.last_date || "");
         localStorage.setItem('upsc_tasks', JSON.stringify(data.tasks || []));
-        await userRef.update({ name: user.displayName });
     } else {
         await userRef.set({
             name: user.displayName,
@@ -88,93 +83,56 @@ async function syncCloudData(user) {
 async function updateLeaderboard() {
     const leaderboardList = document.getElementById('leaderboard-list');
     if (!leaderboardList) return;
-
     try {
-        const snapshot = await db.collection('users')
-            .orderBy('streak', 'desc')
-            .limit(5)
-            .get();
-
-        if (snapshot.empty) {
-            leaderboardList.innerHTML = "<p style='font-size:0.8rem; color:gray; text-align:center;'>No rankings yet.</p>";
-            return;
-        }
-
-        let html = '<table style="width:100%; border-collapse: collapse;">';
+        const snapshot = await db.collection('users').orderBy('streak', 'desc').limit(5).get();
+        let html = '<table class="leaderboard-table">';
         let rank = 1;
         snapshot.forEach(doc => {
             const data = doc.data();
             const isMe = currentUser && doc.id === currentUser.uid;
             html += `
-                <tr style="border-bottom: 1px solid #f1f5f9; height: 45px; ${isMe ? 'background:#eef2ff;' : ''}">
-                    <td style="padding-left:10px; font-weight:bold; color:#6366f1; width:30px;">${rank}</td>
-                    <td style="font-size:0.9rem;">${data.name || "Officer"} ${isMe ? '(You)' : ''}</td>
-                    <td style="text-align:right; padding-right:10px; font-weight:600; color:#f59e0b;">🔥 ${data.streak || 0}</td>
+                <tr class="${isMe ? 'highlight-me' : ''}">
+                    <td>${rank}</td>
+                    <td>${data.name || "Officer"}</td>
+                    <td style="text-align:right">🔥 ${data.streak || 0}</td>
                 </tr>`;
             rank++;
         });
-        html += '</table>';
-        leaderboardList.innerHTML = html;
-    } catch (e) {
-        console.error("Leaderboard Error:", e);
-    }
+        leaderboardList.innerHTML = html + '</table>';
+    } catch (e) { console.error(e); }
 }
 
-// --- APP CORE LOGIC ---
+// --- CORE APP LOGIC ---
 async function init() {
     updateStreakDisplay();
     renderTasks();
-
     try {
         const response = await fetch('./questions.json');
         allQuestions = await response.json();
-        console.log("Questions loaded:", allQuestions.length);
-    } catch (e) { 
-        console.error("JSON Load Error", e); 
-    }
+    } catch (e) { console.error("JSON Error", e); }
 }
 
-function initGuestMode() {
-    init();
-}
+function initGuestMode() { init(); }
 
 function updateStreakDisplay() {
     const streakEl = document.getElementById('streak-count');
-    const savedStreak = parseInt(localStorage.getItem('upsc_streak')) || 0;
-    if (streakEl) streakEl.innerText = savedStreak;
+    if (streakEl) streakEl.innerText = localStorage.getItem('upsc_streak') || 0;
 }
 
-async function saveData(newStreak, newDate, newTasks) {
-    if (newStreak !== null) localStorage.setItem('upsc_streak', newStreak);
-    if (newDate !== null) localStorage.setItem('upsc_last_date', newDate);
-    if (newTasks !== null) localStorage.setItem('upsc_tasks', JSON.stringify(newTasks));
-
-    if (currentUser) {
-        const updateObj = {};
-        if (newStreak !== null) updateObj.streak = newStreak;
-        if (newDate !== null) updateObj.last_date = newDate;
-        if (newTasks !== null) updateObj.tasks = newTasks;
-        await db.collection('users').doc(currentUser.uid).update(updateObj);
-        updateLeaderboard(); 
-    }
-}
-
-// --- QUIZ FUNCTIONS ---
+// --- LEETCODE-STYLE QUIZ LOGIC ---
 window.startFilteredQuiz = (subject) => {
     currentIdx = 0; score = 0;
-    
     let filtered = [];
-    if (subject === 'All') {
+
+    if (subject === 'Review') {
+        filtered = allQuestions.filter(q => wrongQuestions.includes(q.id));
+        if (filtered.length === 0) return alert("No wrong answers to review yet! Practice more first.");
+    } else if (subject === 'All') {
         filtered = allQuestions;
-    } else if (subject === 'Review') {
-        // Simple logic: Just shuffle all for now, or filter by a 'wrong' flag if you implement it
-        filtered = allQuestions.slice().sort(() => 0.5 - Math.random());
     } else {
         filtered = allQuestions.filter(q => q.subject.toLowerCase() === subject.toLowerCase());
     }
 
-    if (filtered.length === 0) return alert("No questions found for " + subject);
-    
     quizData = filtered.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
     document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
@@ -183,82 +141,100 @@ window.startFilteredQuiz = (subject) => {
 function showQuestion() {
     const container = document.getElementById('quiz-container');
     const q = quizData[currentIdx];
+    
+    // Determine Difficulty Tag (LeetCode Style)
+    let difficulty = q.id % 3 === 0 ? 'Hard' : (q.id % 2 === 0 ? 'Medium' : 'Easy');
+    let diffColor = difficulty === 'Easy' ? '#00b8a3' : (difficulty === 'Medium' ? '#ffb800' : '#ff2d55');
+
     container.innerHTML = `
-        <div class="quiz-box animate-in">
-            <div class="quiz-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <span>Subject: <b>${q.subject}</b></span>
-                <span>${currentIdx + 1}/${quizData.length}</span>
+        <div class="quiz-card animate-in">
+            <div class="quiz-meta">
+                <span class="subject-tag">${q.subject}</span>
+                <span style="color:${diffColor}; font-weight:bold; font-size:0.8rem;">${difficulty}</span>
+                <span class="q-count">${currentIdx + 1} / ${quizData.length}</span>
             </div>
-            <p class="question-text">${q.q}</p>
-            <div class="options-grid" style="display:grid; gap:10px;">
-                ${q.opts.map((opt, i) => `<button class="quiz-btn" onclick="handleSelect(${i})">${opt}</button>`).join('')}
+            <h2 class="question-text">${q.q}</h2>
+            <div class="options-container">
+                ${q.opts.map((opt, i) => `
+                    <button class="option-row" onclick="handleSelect(${i})">
+                        <span class="opt-letter">${String.fromCharCode(65+i)}</span>
+                        <span class="opt-text">${opt}</span>
+                    </button>
+                `).join('')}
             </div>
         </div>`;
 }
 
 window.handleSelect = (idx) => {
     const q = quizData[currentIdx];
-    const buttons = document.querySelectorAll('.quiz-btn');
-    
-    // Disable all buttons after selection
+    const buttons = document.querySelectorAll('.option-row');
     buttons.forEach(btn => btn.disabled = true);
 
     if (idx === q.ans) {
-        score++;
-        buttons[idx].style.background = "#dcfce7"; // Green
-        buttons[idx].style.borderColor = "#22c55e";
+        score += 1;
+        buttons[idx].classList.add('correct');
+        // If they got it right, remove from wrong pool
+        wrongQuestions = wrongQuestions.filter(id => id !== q.id);
     } else {
-        buttons[idx].style.background = "#fee2e2"; // Red
-        buttons[idx].style.borderColor = "#ef4444";
-        // Show correct answer in green
-        buttons[q.ans].style.background = "#dcfce7";
+        score -= 0.33; // UPSC Negative Marking
+        buttons[idx].classList.add('wrong');
+        buttons[q.ans].classList.add('correct');
+        // Add to wrong pool for later review
+        if (!wrongQuestions.includes(q.id)) wrongQuestions.push(q.id);
     }
+    
+    localStorage.setItem('upsc_wrong_pool', JSON.stringify(wrongQuestions));
 
     setTimeout(() => {
         currentIdx++;
         if (currentIdx < quizData.length) showQuestion();
         else showResults();
-    }, 1000);
+    }, 1200);
 };
 
 function showResults() {
     const container = document.getElementById('quiz-container');
+    const finalScore = score.toFixed(2);
     
-    // Only update streak if it's a new day and they finished a quiz
+    // Streak Logic
     const today = new Date().toDateString();
-    const lastDate = localStorage.getItem('upsc_last_date');
-    
-    if (lastDate !== today) {
-        let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
-        streak++;
+    if (localStorage.getItem('upsc_last_date') !== today) {
+        let streak = parseInt(localStorage.getItem('upsc_streak') || 0) + 1;
         saveData(streak, today, null);
         updateStreakDisplay();
-        document.getElementById('success-modal').style.display = 'flex';
     }
 
     container.innerHTML = `
-        <div class="results-card" style="text-align:center; padding:20px;">
-            <h2>${score >= 7 ? 'Excellent, Officer!' : 'Keep Grinding!'}</h2>
-            <h1 class="big-score">${score} / ${quizData.length}</h1>
-            <button class="btn-primary" onclick="startFilteredQuiz('All')">Try Another Quiz</button>
+        <div class="results-card">
+            <div class="status-icon">${score >= 6 ? '🏆' : '📚'}</div>
+            <h2>Session Result</h2>
+            <div class="score-display">
+                <span class="score-num">${finalScore}</span>
+                <span class="score-total">/ ${quizData.length}</span>
+            </div>
+            <p class="penalty-note">Includes -0.33 negative marking</p>
+            <div class="result-actions">
+                <button class="btn-primary" onclick="startFilteredQuiz('All')">Next Drill</button>
+                <button class="btn-outline" onclick="startFilteredQuiz('Review')">Review Mistakes (${wrongQuestions.length})</button>
+            </div>
         </div>`;
 }
 
-// --- TASK FUNCTIONS ---
+// --- TASKS ---
 window.renderTasks = () => {
     const taskList = document.getElementById('todo-list');
     if (!taskList) return;
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
-    taskList.innerHTML = tasks.map((task, index) => `
-        <li style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
-            <span style="${task.completed ? 'text-decoration: line-through; opacity:0.6;' : ''}">${task.text}</span>
+    taskList.innerHTML = tasks.map((task, i) => `
+        <li class="task-item">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
+            <span class="${task.completed ? 'done' : ''}">${task.text}</span>
         </li>`).join('');
 };
 
 window.addTask = () => {
     const input = document.getElementById('todo-input');
-    if (!input || !input.value.trim()) return;
+    if (!input.value.trim()) return;
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
     tasks.push({ text: input.value, completed: false });
     saveData(null, null, tasks);
@@ -266,12 +242,25 @@ window.addTask = () => {
     renderTasks();
 };
 
-window.toggleTask = (index) => {
+window.toggleTask = (i) => {
     const tasks = JSON.parse(localStorage.getItem('upsc_tasks')) || [];
-    tasks[index].completed = !tasks[index].completed;
+    tasks[i].completed = !tasks[i].completed;
     saveData(null, null, tasks);
     renderTasks();
 };
 
-// Start the app
+async function saveData(s, d, t) {
+    if (s !== null) localStorage.setItem('upsc_streak', s);
+    if (d !== null) localStorage.setItem('upsc_last_date', d);
+    if (t !== null) localStorage.setItem('upsc_tasks', JSON.stringify(t));
+    if (currentUser) {
+        const obj = {};
+        if (s !== null) obj.streak = s;
+        if (d !== null) obj.last_date = d;
+        if (t !== null) obj.tasks = t;
+        await db.collection('users').doc(currentUser.uid).update(obj);
+        updateLeaderboard();
+    }
+}
+
 init();
