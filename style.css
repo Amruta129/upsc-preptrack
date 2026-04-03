@@ -12,6 +12,7 @@
     --hard: #ff2d55;
     --border: #e5e7eb;
     --whatsapp: #25d366;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -23,192 +24,191 @@ body {
     background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 /* 2. MODERN NAVBAR */
 .navbar {
-    height: 60px;
+    height: 65px;
     background: #ffffff;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     position: sticky;
     top: 0; z-index: 1000;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .nav-container {
-    width: 95%; margin: 0 auto;
+    width: 95%; max-width: 1400px; margin: 0 auto;
     display: flex; justify-content: space-between; align-items: center;
 }
 
 .logo {
-    font-size: 1.2rem; font-weight: 700;
+    font-size: 1.3rem; font-weight: 800;
     color: var(--primary); letter-spacing: -0.5px;
+    display: flex; align-items: center;
 }
 
 .badge-amruta {
     background: #fdf2f8; color: #db2777;
-    font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; margin-left: 5px;
+    font-size: 0.65rem; padding: 2px 10px; border-radius: 20px; 
+    margin-left: 8px; font-weight: 600; border: 1px solid #fbcfe8;
+}
+
+.streak-pill {
+    background: #fff7ed; color: #ea580c;
+    padding: 6px 14px; border-radius: 20px;
+    font-weight: 700; border: 1px solid #ffedd5;
+    font-size: 0.9rem; margin-right: 15px;
 }
 
 /* 3. DASHBOARD GRID (3-Columns) */
 .dashboard-main {
     display: grid;
-    grid-template-columns: 280px 1fr 320px;
-    gap: 20px;
+    grid-template-columns: 300px 1fr 320px;
+    gap: 24px;
     max-width: 1440px;
-    margin: 20px auto;
+    margin: 24px auto;
     padding: 0 20px;
 }
 
 /* 4. CARDS & SIDEBARS */
 .card {
     background: var(--bg-card);
-    border-radius: 12px;
+    border-radius: 16px;
     border: 1px solid var(--border);
-    padding: 20px;
+    padding: 24px;
     margin-bottom: 20px;
-    transition: transform 0.2s ease;
+    box-shadow: var(--shadow);
 }
 
 .card h3 {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     text-transform: uppercase;
-    margin-bottom: 15px;
-    letter-spacing: 0.8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    margin-bottom: 18px;
+    letter-spacing: 1px;
+    font-weight: 700;
 }
 
 /* 5. HEATMAP (GitHub Style) */
 .heatmap-container {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 4px;
     margin-top: 10px;
 }
 
 .heat-sq {
-    aspect-ratio: 1;
-    background: #ebedf0;
+    width: 12px; height: 12px;
+    background: #e5e7eb;
     border-radius: 2px;
-    cursor: pointer;
+    transition: transform 0.1s;
 }
 
-.heat-sq.active { background: #22c55e; }
-.heat-sq.active-high { background: #15803d; } /* For multiple quizzes in one day */
+.heat-sq:hover { transform: scale(1.3); }
+.heat-sq.active { background: #4ade80; }
+.heat-sq.active-high { background: #166534; }
 
-/* 6. LEADERBOARD STYLES */
-.leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.leaderboard-table tr {
+/* 6. FILTER BAR */
+.filter-bar {
+    background: white;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    white-space: nowrap;
 }
 
-.leaderboard-table td {
-    padding: 12px 4px;
-    font-size: 0.9rem;
+.filter-container {
+    width: 95%; max-width: 1400px; margin: 0 auto;
+    display: flex; gap: 10px;
 }
 
-.highlight-me {
-    background: var(--primary-light);
-    border-radius: 8px;
+.filter-btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; cursor: pointer; font-size: 0.85rem; font-weight: 500;
+    transition: 0.2s;
 }
+
+.filter-btn.active, .filter-btn:hover {
+    background: var(--primary-light); color: var(--primary); border-color: var(--primary);
+}
+
+.review-btn { color: #ef4444; border-color: #fee2e2; }
 
 /* 7. QUIZ WORKSPACE */
 .main-quiz-card {
-    min-height: 500px;
-    border-top: 4px solid var(--primary);
+    min-height: 550px;
+    border-top: 6px solid var(--primary);
 }
+
+.question-text { font-size: 1.25rem; font-weight: 700; margin-bottom: 25px; color: #111827; }
 
 .option-row {
     width: 100%; display: flex; align-items: center;
-    background: #f9fafb; border: 1px solid var(--border);
-    padding: 16px; border-radius: 10px;
-    margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease;
+    background: #ffffff; border: 2px solid #f3f4f6;
+    padding: 18px; border-radius: 12px;
+    margin-bottom: 14px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.opt-letter {
+    width: 30px; height: 30px; background: #f3f4f6;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; margin-right: 15px; font-weight: 700; font-size: 0.8rem;
 }
 
 .option-row:hover {
-    background: #ffffff; border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-color: var(--primary); background: var(--primary-light);
 }
 
-.option-row.correct { background: #dcfce7; border-color: #22c55e; color: #166534; font-weight: 600;}
-.option-row.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b;}
-
-/* 8. ANALYTICS STATS */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 10px;
+.option-row.correct { 
+    background: #ecfdf5; border-color: #10b981; color: #064e3b; 
 }
 
-.stat-box {
-    background: #f9fafb;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
+.option-row.wrong { 
+    background: #fef2f2; border-color: #ef4444; color: #7f1d1d; 
 }
 
-.stat-box span {
-    display: block;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--primary);
+/* 8. BUTTONS */
+.btn-primary-large {
+    background: var(--primary); color: white; border: none;
+    padding: 16px 32px; border-radius: 12px; font-weight: 700;
+    cursor: pointer; transition: 0.3s; width: 100%;
 }
 
-.stat-box label {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
+.btn-primary-large:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+/* 9. TODO SYSTEM */
+.todo-input-group { display: flex; gap: 8px; margin-bottom: 15px; }
+.todo-input-group input {
+    flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+}
+.todo-input-group button {
+    background: var(--primary); color: white; border: none; width: 40px; border-radius: 8px; cursor: pointer;
 }
 
-/* 9. VIRAL SHARE BUTTON */
-.whatsapp-btn {
-    width: 100%;
-    background: var(--whatsapp);
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 10px;
+/* 10. LEADERBOARD */
+.leaderboard-table { width: 100%; }
+.leaderboard-table tr { height: 50px; border-bottom: 1px solid #f9fafb; }
+.highlight-me { background: #f5f3ff; color: var(--primary); font-weight: 700; border-radius: 8px; }
+
+/* 11. RESPONSIVE DESIGN */
+@media (max-width: 1280px) {
+    .dashboard-main { grid-template-columns: 280px 1fr; }
+    .sidebar-right { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 }
 
-.whatsapp-btn:hover { background: #22c05b; }
-
-/* 10. TODO & TASKS */
-.task-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 0; border-bottom: 1px solid var(--border);
+@media (max-width: 900px) {
+    .dashboard-main { grid-template-columns: 1fr; }
+    .sidebar-left, .sidebar-right { grid-column: span 1; }
+    .sidebar-right { grid-template-columns: 1fr; }
+    .navbar .logo { font-size: 1.1rem; }
 }
 
-.task-item span.done { text-decoration: line-through; color: var(--text-muted); }
-
-/* 11. RESPONSIVE */
-@media (max-width: 1200px) {
-    .dashboard-main {
-        grid-template-columns: 1fr 1.5fr;
-    }
-    .sidebar-right { grid-column: span 2; }
+/* ANIMATIONS */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
-@media (max-width: 800px) {
-    .dashboard-main {
-        grid-template-columns: 1fr;
-    }
-    .sidebar-left, .sidebar-right { order: 2; }
-    .quiz-workspace { order: 1; }
-}
+.animate-in { animation: fadeIn 0.4s ease-out forwards; }

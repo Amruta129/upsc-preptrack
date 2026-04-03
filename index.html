@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrepTrack Dashboard | UPSC LeetCode Style</title>
+    <title>PrepTrack Dashboard | UPSC Daily Challenge</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -13,7 +13,7 @@
         <div class="nav-container">
             <div class="logo">PrepTrack <span class="badge-amruta">w/ Amruta</span></div>
             <div class="nav-right">
-                <div class="streak-pill">🔥 <span id="streak-count">0</span> Days</div>
+                <div class="streak-pill">🔥 <span id="streak-count">0</span></div>
                 <div id="auth-area">
                     <button class="btn-signin" onclick="handleLogin()">Sign In</button>
                 </div>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div class="progress-container" style="margin-top: 20px;">
-                    <p class="accuracy-text" style="font-size: 0.8rem; color: var(--text-muted);">Current Accuracy</p>
+                    <p class="accuracy-text" style="font-size: 0.8rem; color: var(--text-muted);">Quest Progress (of 160)</p>
                     <div class="progress-bar-bg" style="background:#e5e7eb; height:8px; border-radius:10px; margin-top:5px;">
                         <div id="accuracy-fill" style="background:var(--primary); width:0%; height:100%; border-radius:10px; transition: width 0.5s;"></div>
                     </div>
@@ -97,27 +97,28 @@
             </div>
 
             <div class="card viral-card" style="border: 1px solid #dcfce7; background: #f0fdf4;">
-                <h3 style="color: #166534;">🚀 Grow the Community</h3>
-                <p style="font-size: 0.85rem; margin-bottom: 15px;">Target: 500 Daily Officers. Share your progress to invite others!</p>
-                <button onclick="shareResults()" class="whatsapp-btn">
+                <h3 style="color: #166534;">🚀 Target: 500 Daily Officers</h3>
+                <p style="font-size: 0.85rem; margin-bottom: 15px;">Consistency is the key to LBSNAA 🇮🇳. Share your streak!</p>
+                <button onclick="shareResults()" class="whatsapp-btn" style="background:#25d366; color:white; width:100%; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer;">
                     Share Streak on WhatsApp
                 </button>
             </div>
         </aside>
     </main>
 
-    <div id="success-modal" class="modal" style="display:none;">
-        <div class="modal-content">
+    <div id="success-modal" class="modal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background: white; margin: 15% auto; padding: 30px; border-radius: 15px; width: 300px; text-align: center;">
             <span class="confetti" style="font-size: 3rem;">🎉</span>
-            <h2>Session Complete!</h2>
-            <p>Your stats have been updated in the cloud.</p>
-            <button onclick="document.getElementById('success-modal').style.display='none'" class="btn-primary">Back to Dashboard</button>
+            <h2>Daily Task Complete!</h2>
+            <p>Your stats are synced to the cloud.</p>
+            <button onclick="location.reload()" class="btn-primary" style="margin-top:20px; padding:10px 20px;">Back to Dashboard</button>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
     <script src="script.js"></script>
 </body>
 </html>
