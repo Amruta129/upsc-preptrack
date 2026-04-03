@@ -13,6 +13,9 @@ if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Constants
+const TOTAL_QUESTIONS_COUNT = 250; // Updated from 160
+
 let allQuestions = [];
 let quizData = [];
 let currentIdx = 0;
@@ -43,7 +46,7 @@ auth.onAuthStateChanged((user) => {
     } else {
         init();
         updateLeaderboard(); 
-        renderCalendar(); // Render empty calendar for guests
+        renderCalendar(); 
     }
 });
 
@@ -74,23 +77,25 @@ function renderCalendar() {
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
 
-    // Get completed dates from LocalStorage
     const completedDates = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
 
     container.innerHTML = '';
 
-    // Empty slots for start of month
+    // Create empty slots for days before the 1st of the month
     for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
+        empty.classList.add('cal-day-empty');
         container.appendChild(empty);
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
         const dayBox = document.createElement('div');
         dayBox.classList.add('cal-day');
-        dayBox.innerText = d;
+        
+        const dateObj = new Date(now.getFullYear(), now.getMonth(), d);
+        const dateKey = dateObj.toDateString();
 
-        const dateKey = new Date(now.getFullYear(), now.getMonth(), d).toDateString();
+        dayBox.innerText = d;
 
         if (d === now.getDate()) dayBox.classList.add('today');
         
@@ -136,8 +141,21 @@ function updateAnalytics() {
     const history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
     const totalSolved = Object.values(history).reduce((a, b) => a + b, 0);
     
+    // Update Points
     if(document.getElementById('points-val')) document.getElementById('points-val').innerText = pts;
+    
+    // Update Solved Count
     if(document.getElementById('solved-count')) document.getElementById('solved-count').innerText = totalSolved;
+    
+    // Update Progress Bar and Text
+    const progressText = document.getElementById('quest-progress-text');
+    if (progressText) progressText.innerText = `Quest Progress (of ${TOTAL_QUESTIONS_COUNT})`;
+    
+    const progressBar = document.getElementById('progress-bar-fill');
+    if (progressBar) {
+        const percentage = (totalSolved / TOTAL_QUESTIONS_COUNT) * 100;
+        progressBar.style.width = `${Math.min(percentage, 100)}%`;
+    }
 }
 
 // --- CORE QUIZ LOGIC ---
@@ -145,6 +163,7 @@ async function init() {
     try {
         const response = await fetch('./questions.json');
         allQuestions = await response.json();
+        updateAnalytics(); // Run once questions are loaded to ensure progress is accurate
     } catch (e) { console.error("JSON Error", e); }
 }
 
@@ -167,7 +186,6 @@ window.startFilteredQuiz = (subject) => {
 
     if (pool.length === 0) return alert("Category empty!");
 
-    // Deterministic selection
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const startIndex = (dayOfYear * 10) % pool.length;
     quizData = pool.slice(startIndex, startIndex + 10);
@@ -212,6 +230,12 @@ window.handleSelect = (idx) => {
         score++; pts = 10;
         buttons[idx].classList.add('correct');
         wrongQuestions = wrongQuestions.filter(id => id !== q.id);
+        
+        // Update Local History count for progress bar
+        let history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
+        history[q.subject] = (history[q.subject] || 0) + 1;
+        localStorage.setItem('upsc_history', JSON.stringify(history));
+
     } else {
         score -= 0.33; pts = -2;
         buttons[idx].classList.add('wrong');
@@ -241,12 +265,10 @@ function showResults() {
     const container = document.getElementById('quiz-container');
     const today = new Date().toDateString();
     
-    // Update Ticks for Calendar
     let completed = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
     if (!completed.includes(today)) completed.push(today);
     localStorage.setItem('upsc_completed_dates', JSON.stringify(completed));
 
-    // Update Streak
     let streak = parseInt(localStorage.getItem('upsc_streak') || 0);
     const lastDate = localStorage.getItem('upsc_last_date');
     const yesterday = new Date();
@@ -279,7 +301,8 @@ async function saveData(s, d, comp) {
             streak: s,
             last_date: d,
             completed_dates: comp,
-            points: parseInt(localStorage.getItem('upsc_points')) || 0
+            points: parseInt(localStorage.getItem('upsc_points')) || 0,
+            history: JSON.parse(localStorage.getItem('upsc_history') || "{}")
         }, { merge: true });
     }
 }
@@ -296,7 +319,9 @@ async function updateLeaderboard() {
     const snap = await db.collection('users').orderBy('points', 'desc').limit(5).get();
     let html = '<table style="width:100%; font-size:0.9rem;">';
     snap.forEach(doc => {
-        html += `<tr><td style="padding:5px 0;">${doc.data().name.split(' ')[0]}</td><td style="text-align:right; font-weight:700; color:var(--primary);">⭐ ${doc.data().points}</td></tr>`;
+        const userData = doc.data();
+        const displayName = userData.name ? userData.name.split(' ')[0] : "User";
+        html += `<tr><td style="padding:5px 0;">${displayName}</td><td style="text-align:right; font-weight:700; color:#6366f1;">⭐ ${userData.points || 0}</td></tr>`;
     });
     list.innerHTML = html + '</table>';
 }
