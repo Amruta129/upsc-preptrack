@@ -24,20 +24,15 @@ let wrongQuestions = JSON.parse(localStorage.getItem('upsc_wrong_pool')) || [];
 
 // --- INITIALIZATION ---
 async function init() {
-    console.log("Initializing PrepTrack...");
     try {
         const response = await fetch('./questions.json?v=' + new Date().getTime());
         allQuestions = await response.json();
         
-        // Auto-start if empty
-        const container = document.getElementById('quiz-container');
-        if (container && container.innerHTML.includes('welcome-screen')) {
-            // Optional: Auto-start logic here
-        }
-        
         updateAnalytics();
-        renderTodoList(); // Initialize To-Do List
-    } catch (e) { console.error("Load Error:", e); }
+        renderTodoList(); 
+        renderCalendar();
+        updateLeaderboard();
+    } catch (e) { console.error("Init Error:", e); }
 }
 
 // --- TO-DO LIST LOGIC ---
@@ -54,8 +49,7 @@ window.addTask = () => {
     renderTodoList();
 };
 
-// Handle Enter Key for To-Do
-document.addEventListener('keypress', (e) => {
+document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && document.activeElement.id === 'todo-input') {
         window.addTask();
     }
@@ -80,13 +74,14 @@ function renderTodoList() {
     if (!list) return;
     const tasks = JSON.parse(localStorage.getItem('upsc_todo_tasks')) || [];
     
-    list.innerHTML = tasks.map(t => `
-        <li class="todo-item ${t.completed ? 'completed' : ''}" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f1f5f9;">
+    list.innerHTML = tasks.length === 0 ? '<li style="color:#94a3b8; font-size:0.8rem; text-align:center; list-style:none; padding:20px;">No targets set for today.</li>' : 
+    tasks.map(t => `
+        <li class="todo-item ${t.completed ? 'completed' : ''}" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f1f5f9; list-style:none;">
             <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleTask(${t.id})">
                 <i class="${t.completed ? 'fas fa-check-circle' : 'far fa-circle'}" style="color: ${t.completed ? '#22c55e' : '#6366f1'};"></i>
-                <span style="text-decoration: ${t.completed ? 'line-through' : 'none'}; color: ${t.completed ? '#94a3b8' : '#1e293b'};">${t.text}</span>
+                <span style="text-decoration: ${t.completed ? 'line-through' : 'none'}; color: ${t.completed ? '#94a3b8' : '#1e293b'}; font-size:0.85rem;">${t.text}</span>
             </div>
-            <i class="fas fa-trash" onclick="deleteTask(${t.id})" style="color:#cbd5e1; cursor:pointer; font-size:0.8rem;"></i>
+            <i class="fas fa-trash" onclick="deleteTask(${t.id})" style="color:#cbd5e1; cursor:pointer; font-size:0.75rem;"></i>
         </li>
     `).join('');
 }
@@ -95,8 +90,9 @@ function renderTodoList() {
 window.startFilteredQuiz = (subject, isAutoLoad = false) => {
     if (!allQuestions.length) return;
     const today = new Date().toDateString();
-    if (localStorage.getItem('upsc_last_date') === today && subject !== 'Review' && !isAutoLoad) {
-        return alert("Daily limit reached! Practice in 'Review' mode.");
+    
+    if (localStorage.getItem('upsc_last_date') === today && subject.toLowerCase() !== 'review' && !isAutoLoad) {
+        return alert("Daily drill completed! Review your errors or come back tomorrow.");
     }
 
     currentIdx = 0; score = 0;
@@ -105,16 +101,14 @@ window.startFilteredQuiz = (subject, isAutoLoad = false) => {
 
     if (target === 'review') {
         pool = allQuestions.filter(q => wrongQuestions.includes(q.id));
-        if (!pool.length) return alert("No errors to review!");
+        if (!pool.length) return alert("No errors to review yet!");
     } else if (target === 'all') {
         pool = allQuestions;
     } else {
         pool = allQuestions.filter(q => q.subject.toLowerCase() === target);
     }
 
-    if (!pool.length) return alert("Category empty!");
-
-    // Shuffle and slice 10
+    if (!pool.length) return alert("Subject pool is currently empty.");
     quizData = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
 };
@@ -124,22 +118,22 @@ function showQuestion() {
     const q = quizData[currentIdx];
     container.innerHTML = `
         <div class="quiz-card animate-in">
-            <div class="quiz-meta">
-                <span class="subject-tag">${q.subject}</span>
-                <span>${currentIdx + 1}/10</span>
+            <div class="quiz-meta" style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <span class="subject-tag" style="background:#f1f5f9; padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:700; color:#6366f1;">${q.subject.toUpperCase()}</span>
+                <span style="font-size:0.8rem; color:#94a3b8; font-weight:600;">Question ${currentIdx + 1}/10</span>
             </div>
-            <h2 class="question-text">${q.q}</h2>
-            <div class="options-container">
+            <h2 class="question-text" style="font-size:1.1rem; margin-bottom:20px; line-height:1.5;">${q.q}</h2>
+            <div class="options-container" style="display:grid; gap:10px;">
                 ${q.opts.map((opt, i) => `
-                    <button class="option-row" onclick="handleSelect(${i})">
-                        <span class="opt-letter">${String.fromCharCode(65+i)}</span>
-                        <span class="opt-text">${opt}</span>
+                    <button class="option-row" onclick="handleSelect(${i})" style="text-align:left; padding:12px 15px; border:1px solid #f1f5f9; border-radius:10px; background:white; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:12px;">
+                        <span style="background:#f8fafc; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; font-weight:700; font-size:0.8rem;">${String.fromCharCode(65+i)}</span>
+                        <span style="font-size:0.9rem; color:#475569;">${opt}</span>
                     </button>
                 `).join('')}
             </div>
             <div id="feedback-area" style="display:none; margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
-                <p style="font-size:0.85rem; color:#475569;"><strong>Explanation:</strong> ${q.explanation}</p>
-                <button onclick="nextStep()" class="btn-primary" style="width:100%; margin-top:10px;">Next Question →</button>
+                <p style="font-size:0.85rem; color:#64748b; line-height:1.6; background:#f8fafc; padding:12px; border-radius:8px;"><strong>Context:</strong> ${q.explanation}</p>
+                <button onclick="nextStep()" class="btn-primary" style="width:100%; margin-top:15px; padding:12px; background:#6366f1; color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Next Challenge →</button>
             </div>
         </div>`;
 }
@@ -151,13 +145,15 @@ window.handleSelect = (idx) => {
 
     if (idx === q.ans) {
         score++;
-        buttons[idx].classList.add('correct');
+        buttons[idx].style.borderColor = '#22c55e';
+        buttons[idx].style.background = '#f0fdf4';
         wrongQuestions = wrongQuestions.filter(id => id !== q.id);
         updatePoints(10, q.subject);
     } else {
         score -= 0.33;
-        buttons[idx].classList.add('wrong');
-        buttons[q.ans].classList.add('correct');
+        buttons[idx].style.borderColor = '#ef4444';
+        buttons[idx].style.background = '#fef2f2';
+        buttons[q.ans].style.borderColor = '#22c55e';
         if (!wrongQuestions.includes(q.id)) wrongQuestions.push(q.id);
         updatePoints(-2, q.subject);
     }
@@ -171,7 +167,66 @@ window.nextStep = () => {
     else showResults();
 };
 
-// --- STATS & CLOUD ---
+function showResults() {
+    const container = document.getElementById('quiz-container');
+    const today = new Date().toDateString();
+    localStorage.setItem('upsc_last_date', today);
+
+    let comp = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
+    if (!comp.includes(today)) comp.push(today);
+    localStorage.setItem('upsc_completed_dates', JSON.stringify(comp));
+
+    container.innerHTML = `
+        <div class="results-card" style="text-align:center; padding:40px 20px;">
+            <div style="font-size:3rem; margin-bottom:10px;">🎯</div>
+            <h2 style="color:#1e293b;">Drill Complete!</h2>
+            <p style="color:#64748b; margin-bottom:20px;">Session Score: <strong>${score.toFixed(2)}</strong></p>
+            <button onclick="location.reload()" class="btn-primary" style="padding:12px 30px; background:#6366f1; color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Claim Reward & Exit</button>
+        </div>`;
+    renderCalendar();
+}
+
+// --- CALENDAR & LEADERBOARD ---
+function renderCalendar() {
+    const container = document.getElementById('calendar-days');
+    const label = document.getElementById('month-label');
+    if (!container) return;
+    
+    const now = new Date();
+    if (label) label.innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+    const completedDates = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
+
+    container.innerHTML = '';
+    for (let i = 0; i < firstDay; i++) container.innerHTML += `<div class="cal-day-empty"></div>`;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateKey = new Date(now.getFullYear(), now.getMonth(), d).toDateString();
+        const isDone = completedDates.includes(dateKey);
+        container.innerHTML += `<div class="cal-day ${isDone ? 'completed' : ''}" style="width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:600; border-radius:6px; background:${isDone ? '#6366f1' : '#f8fafc'}; color:${isDone ? 'white' : '#64748b'};">${d}</div>`;
+    }
+}
+
+async function updateLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    try {
+        const snap = await db.collection('users').orderBy('points', 'desc').limit(5).get();
+        let html = '<ul style="list-style:none; padding:0; margin-top:15px;">';
+        snap.forEach((doc, i) => {
+            const d = doc.data();
+            html += `<li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+                <span style="font-size:0.85rem; color:#475569;">${i+1}. ${d.name || 'Aspirant'}</span>
+                <span style="font-weight:700; color:#6366f1; font-size:0.85rem;">${d.points || 0} XP</span>
+            </li>`;
+        });
+        list.innerHTML = html + '</ul>';
+    } catch(e) { list.innerHTML = '<p style="font-size:0.7rem; color:#94a3b8;">Rankings available in Cloud mode.</p>'; }
+}
+
+// --- STATS SYNC ---
 function updatePoints(pts, subject) {
     let p = parseInt(localStorage.getItem('upsc_points')) || 0;
     p = Math.max(0, p + pts);
@@ -181,6 +236,14 @@ function updatePoints(pts, subject) {
         let history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
         history[subject] = (history[subject] || 0) + 1;
         localStorage.setItem('upsc_history', JSON.stringify(history));
+    }
+    
+    if (currentUser) {
+        db.collection('users').doc(currentUser.uid).set({
+            points: p,
+            name: currentUser.displayName || "Aspirant",
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
     }
     updateAnalytics();
 }
@@ -198,30 +261,22 @@ function updateAnalytics() {
     }
 }
 
-// --- AUTH ---
+// --- AUTH & SYNC ---
 auth.onAuthStateChanged(user => {
     currentUser = user;
     if (user) {
-        const authArea = document.getElementById('auth-area');
-        authArea.innerHTML = `<button onclick="handleLogout()" class="btn-signin">Logout</button>`;
+        document.getElementById('auth-area').innerHTML = `<button onclick="handleLogout()" class="btn-signin" style="background:#fef2f2; color:#ef4444; border:1px solid #fee2e2;">Logout</button>`;
         syncCloudData(user);
     } else {
         init();
     }
 });
 
-window.handleLogin = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-};
-
-window.handleLogout = () => {
-    auth.signOut().then(() => { localStorage.clear(); window.location.reload(); });
-};
+window.handleLogin = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+window.handleLogout = () => { auth.signOut().then(() => { localStorage.clear(); window.location.reload(); }); };
 
 async function syncCloudData(user) {
-    const ref = db.collection('users').doc(user.uid);
-    const doc = await ref.get();
+    const doc = await db.collection('users').doc(user.uid).get();
     if (doc.exists) {
         const d = doc.data();
         localStorage.setItem('upsc_points', d.points || 0);
@@ -229,7 +284,3 @@ async function syncCloudData(user) {
     }
     init();
 }
-
-// Start everything
-init();
-renderCalendar();
