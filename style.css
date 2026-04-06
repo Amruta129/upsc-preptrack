@@ -417,4 +417,25 @@ body, button, input {
 
 .community-btn i {
     font-size: 1.1rem;
+}/* Heatmap Completion Style */
+.cal-day.completed {
+    background-color: #6366f1 !important; /* Purple/Blue background */
+    color: white !important;
+    position: relative;
+}
+
+/* Add the Checkmark inside the box */
+.cal-day.completed::after {
+    content: '✓';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 0.6rem;
+    font-weight: 800;
+}
+
+/* Optional: Today's date highlight */
+.cal-day.today {
+    border: 2px solid #6366f1;
+    font-weight: 800;
 }

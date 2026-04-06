@@ -172,6 +172,7 @@ function showResults() {
     const today = new Date().toDateString();
     localStorage.setItem('upsc_last_date', today);
 
+    // FIX: Ensure the calendar date is pushed correctly
     let comp = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
     if (!comp.includes(today)) comp.push(today);
     localStorage.setItem('upsc_completed_dates', JSON.stringify(comp));
@@ -183,7 +184,8 @@ function showResults() {
             <p style="color:#64748b; margin-bottom:20px;">Session Score: <strong>${score.toFixed(2)}</strong></p>
             <button onclick="location.reload()" class="btn-primary" style="padding:12px 30px; background:#6366f1; color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Claim Reward & Exit</button>
         </div>`;
-    renderCalendar();
+    
+    renderCalendar(); // Re-render to show the "tick"
 }
 
 // --- CALENDAR & LEADERBOARD ---
@@ -205,6 +207,7 @@ function renderCalendar() {
     for (let d = 1; d <= daysInMonth; d++) {
         const dateKey = new Date(now.getFullYear(), now.getMonth(), d).toDateString();
         const isDone = completedDates.includes(dateKey);
+        // FIX: Ensure the "completed" class is applied correctly for the tick
         container.innerHTML += `<div class="cal-day ${isDone ? 'completed' : ''}" style="width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:600; border-radius:6px; background:${isDone ? '#6366f1' : '#f8fafc'}; color:${isDone ? 'white' : '#64748b'};">${d}</div>`;
     }
 }
@@ -250,11 +253,14 @@ function updatePoints(pts, subject) {
 
 function updateAnalytics() {
     const p = localStorage.getItem('upsc_points') || 0;
+    const streak = localStorage.getItem('upsc_streak') || 0;
     const history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
     const solved = Object.values(history).reduce((a, b) => a + b, 0);
     
     if (document.getElementById('points-val')) document.getElementById('points-val').innerText = p;
     if (document.getElementById('solved-count')) document.getElementById('solved-count').innerText = solved;
+    if (document.getElementById('streak-count')) document.getElementById('streak-count').innerText = streak;
+    
     if (document.getElementById('progress-bar-fill')) {
         const perc = (solved / TOTAL_QUESTIONS_COUNT) * 100;
         document.getElementById('progress-bar-fill').style.width = `${Math.min(perc, 100)}%`;
@@ -264,10 +270,18 @@ function updateAnalytics() {
 // --- AUTH & SYNC ---
 auth.onAuthStateChanged(user => {
     currentUser = user;
+    const authArea = document.getElementById('auth-area');
+    
     if (user) {
-        document.getElementById('auth-area').innerHTML = `<button onclick="handleLogout()" class="btn-signin" style="background:#fef2f2; color:#ef4444; border:1px solid #fee2e2;">Logout</button>`;
+        // FIX: Added the greeting message to show your name in the corner
+        authArea.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:0.85rem; font-weight:700; color:#1e293b;">Hi, ${user.displayName.split(' ')[0]}</span>
+                <button onclick="handleLogout()" class="btn-signin" style="background:#fef2f2; color:#ef4444; border:1px solid #fee2e2; padding:6px 12px; font-size:0.75rem;">Logout</button>
+            </div>`;
         syncCloudData(user);
     } else {
+        authArea.innerHTML = `<button class="btn-signin" onclick="handleLogin()">Sign In</button>`;
         init();
     }
 });
