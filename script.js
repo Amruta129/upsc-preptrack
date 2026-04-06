@@ -9,7 +9,10 @@ const firebaseConfig = {
     measurementId: "G-6EXX7XY7T2"
 };
 
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+// Initialize Firebase once
+if (!firebase.apps.length) { 
+    firebase.initializeApp(firebaseConfig); 
+}
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -43,13 +46,15 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         updateUI(user);
         
-        // FIX: Create user in Firestore immediately so they show on leaderboard
-        await db.collection('users').doc(user.uid).set({
-            name: user.displayName,
-            points: parseInt(localStorage.getItem('upsc_points')) || 0,
-            streak: parseInt(localStorage.getItem('upsc_streak')) || 0,
-            last_date: localStorage.getItem('upsc_last_date') || ""
-        }, { merge: true });
+        // Ensure user exists in Firestore immediately
+        try {
+            await db.collection('users').doc(user.uid).set({
+                name: user.displayName,
+                points: parseInt(localStorage.getItem('upsc_points')) || 0,
+                streak: parseInt(localStorage.getItem('upsc_streak')) || 0,
+                last_date: localStorage.getItem('upsc_last_date') || ""
+            }, { merge: true });
+        } catch (e) { console.error("Firestore Init Error:", e); }
 
         syncCloudData(user);
     } else {
@@ -160,23 +165,25 @@ function updateAnalytics() {
 // --- CORE QUIZ LOGIC ---
 async function init() {
     try {
-        const response = await fetch('questions.json');
+        // Use ./ to ensure Vercel looks in the root directory
+        const response = await fetch('./questions.json');
         if (!response.ok) throw new Error("Question bank not found");
         allQuestions = await response.json();
+        console.log("Data Loaded Successfully:", allQuestions.length, "questions");
         updateAnalytics(); 
     } catch (e) { 
-        console.error("JSON Error:", e); 
+        console.error("JSON Fetch Error:", e); 
     }
 }
 
 window.startFilteredQuiz = (subject) => {
     if (allQuestions.length === 0) {
-        return alert("Initializing question bank... please try again in a moment.");
+        return alert("Question bank is still loading. Give it 2 seconds and try again.");
     }
 
     const today = new Date().toDateString();
     if (localStorage.getItem('upsc_last_date') === today && subject !== 'Review') {
-        return alert("You've completed your 10 questions for today! Practice in 'Review' or come back tomorrow.");
+        return alert("Daily limit reached! Practice in 'Review' or come back tomorrow.");
     }
 
     currentIdx = 0; score = 0;
@@ -191,7 +198,7 @@ window.startFilteredQuiz = (subject) => {
         );
     }
 
-    if (pool.length === 0) return alert(`Category "${subject}" is currently empty!`);
+    if (pool.length === 0) return alert(`Category "${subject}" is empty.`);
 
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const startIndex = (dayOfYear * 10) % pool.length;
@@ -300,14 +307,16 @@ async function saveData(s, d, comp) {
     localStorage.setItem('upsc_streak', s);
     localStorage.setItem('upsc_last_date', d);
     if (currentUser) {
-        await db.collection('users').doc(currentUser.uid).set({
-            name: currentUser.displayName,
-            streak: s,
-            last_date: d,
-            completed_dates: comp,
-            points: parseInt(localStorage.getItem('upsc_points')) || 0,
-            history: JSON.parse(localStorage.getItem('upsc_history') || "{}")
-        }, { merge: true });
+        try {
+            await db.collection('users').doc(currentUser.uid).set({
+                name: currentUser.displayName,
+                streak: s,
+                last_date: d,
+                completed_dates: comp,
+                points: parseInt(localStorage.getItem('upsc_points')) || 0,
+                history: JSON.parse(localStorage.getItem('upsc_history') || "{}")
+            }, { merge: true });
+        } catch (e) { console.error("Firestore Save Error:", e); }
     }
 }
 
