@@ -46,7 +46,6 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         updateUI(user);
         
-        // Ensure user exists in Firestore immediately
         try {
             await db.collection('users').doc(user.uid).set({
                 name: user.displayName,
@@ -67,10 +66,11 @@ auth.onAuthStateChanged(async (user) => {
 function updateUI(user) {
     const authArea = document.getElementById('auth-area');
     if (authArea) {
+        const firstName = user.displayName ? user.displayName.split(' ')[0] : "Officer";
         authArea.innerHTML = `
             <div class="user-pill">
                 <img src="${user.photoURL}" class="user-img" style="width:25px; border-radius:50%; margin-right:8px; vertical-align:middle;">
-                <span style="font-size:0.85rem; font-weight:600;">Officer ${user.displayName.split(' ')[0]}</span>
+                <span style="font-size:0.85rem; font-weight:600;">Officer ${firstName}</span>
                 <button onclick="handleLogout()" class="logout-btn" style="margin-left:8px; background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.75rem;">Logout</button>
             </div>`;
     }
@@ -118,16 +118,18 @@ function renderCalendar() {
 
 // --- DATA SYNC ---
 async function syncCloudData(user) {
-    const userRef = db.collection('users').doc(user.uid);
-    const doc = await userRef.get();
-    if (doc.exists) {
-        const data = doc.data();
-        localStorage.setItem('upsc_streak', data.streak || 0);
-        localStorage.setItem('upsc_points', data.points || 0);
-        localStorage.setItem('upsc_history', JSON.stringify(data.history || {}));
-        localStorage.setItem('upsc_last_date', data.last_date || "");
-        localStorage.setItem('upsc_completed_dates', JSON.stringify(data.completed_dates || []));
-    }
+    try {
+        const userRef = db.collection('users').doc(user.uid);
+        const doc = await userRef.get();
+        if (doc.exists) {
+            const data = doc.data();
+            localStorage.setItem('upsc_streak', data.streak || 0);
+            localStorage.setItem('upsc_points', data.points || 0);
+            localStorage.setItem('upsc_history', JSON.stringify(data.history || {}));
+            localStorage.setItem('upsc_last_date', data.last_date || "");
+            localStorage.setItem('upsc_completed_dates', JSON.stringify(data.completed_dates || []));
+        }
+    } catch (e) { console.error("Sync Error:", e); }
     init();
     renderAllStats();
 }
@@ -164,24 +166,33 @@ function updateAnalytics() {
 
 // --- CORE QUIZ LOGIC ---
 async function init() {
+    console.log("Fetching questions...");
     try {
-        // Use ./ to ensure Vercel looks in the root directory
-        const response = await fetch('./questions.json');
-        if (!response.ok) throw new Error("Question bank not found");
+        // The ?v= query string forces the browser to bypass its cache
+        const response = await fetch('./questions.json?v=' + new Date().getTime());
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
         allQuestions = await response.json();
-        console.log("Data Loaded Successfully:", allQuestions.length, "questions");
+        
+        if (!Array.isArray(allQuestions) || allQuestions.length === 0) {
+            console.error("Warning: questions.json is empty or not an array!");
+        } else {
+            console.log("Success! Loaded", allQuestions.length, "questions.");
+        }
+        
         updateAnalytics(); 
     } catch (e) { 
-        console.error("JSON Fetch Error:", e); 
+        console.error("CRITICAL ERROR loading questions.json:", e); 
     }
 }
 
 window.startFilteredQuiz = (subject) => {
-    if (allQuestions.length === 0) {
-        return alert("Question bank is still loading. Give it 2 seconds and try again.");
+    if (!allQuestions || allQuestions.length === 0) {
+        return alert("The Question bank is still initializing. Please wait a few seconds and try again.");
     }
 
     const today = new Date().toDateString();
+    // Allow 'Review' mode even if daily limit is reached
     if (localStorage.getItem('upsc_last_date') === today && subject !== 'Review') {
         return alert("Daily limit reached! Practice in 'Review' or come back tomorrow.");
     }
@@ -191,24 +202,30 @@ window.startFilteredQuiz = (subject) => {
 
     if (subject === 'Review') {
         pool = allQuestions.filter(q => wrongQuestions.includes(q.id));
-        if (pool.length === 0) return alert("No mistakes found to review!");
+        if (pool.length === 0) return alert("Great job! You have no mistakes to review.");
     } else {
-        pool = subject === 'All' ? allQuestions : allQuestions.filter(q => 
+        pool = (subject === 'All') ? allQuestions : allQuestions.filter(q => 
             q.subject.trim().toLowerCase() === subject.trim().toLowerCase()
         );
     }
 
-    if (pool.length === 0) return alert(`Category "${subject}" is empty.`);
+    if (pool.length === 0) return alert(`No questions found for category: ${subject}`);
 
+    // Randomize selection based on day to keep it fresh
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const startIndex = (dayOfYear * 10) % pool.length;
     quizData = pool.slice(startIndex, startIndex + 10);
+
+    // If slice results in less than 10 questions, just take what's available
+    if(quizData.length === 0) quizData = pool.slice(0, 10);
 
     showQuestion();
 };
 
 function showQuestion() {
     const container = document.getElementById('quiz-container');
+    if (!container) return;
+    
     const q = quizData[currentIdx];
     
     container.innerHTML = `
