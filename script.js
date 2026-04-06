@@ -38,10 +38,19 @@ window.handleLogout = () => {
     });
 };
 
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     if (user) {
         updateUI(user);
+        
+        // FIX: Create user in Firestore immediately so they show on leaderboard
+        await db.collection('users').doc(user.uid).set({
+            name: user.displayName,
+            points: parseInt(localStorage.getItem('upsc_points')) || 0,
+            streak: parseInt(localStorage.getItem('upsc_streak')) || 0,
+            last_date: localStorage.getItem('upsc_last_date') || ""
+        }, { merge: true });
+
         syncCloudData(user);
     } else {
         init();
@@ -151,7 +160,6 @@ function updateAnalytics() {
 // --- CORE QUIZ LOGIC ---
 async function init() {
     try {
-        // Changed to relative path for better Vercel deployment
         const response = await fetch('questions.json');
         if (!response.ok) throw new Error("Question bank not found");
         allQuestions = await response.json();
@@ -162,7 +170,6 @@ async function init() {
 }
 
 window.startFilteredQuiz = (subject) => {
-    // Safety check if questions are still loading
     if (allQuestions.length === 0) {
         return alert("Initializing question bank... please try again in a moment.");
     }
@@ -179,7 +186,6 @@ window.startFilteredQuiz = (subject) => {
         pool = allQuestions.filter(q => wrongQuestions.includes(q.id));
         if (pool.length === 0) return alert("No mistakes found to review!");
     } else {
-        // Robust subject matching
         pool = subject === 'All' ? allQuestions : allQuestions.filter(q => 
             q.subject.trim().toLowerCase() === subject.trim().toLowerCase()
         );
