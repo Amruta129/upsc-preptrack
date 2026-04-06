@@ -14,7 +14,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // Constants
-const TOTAL_QUESTIONS_COUNT = 250; // Updated from 160
+const TOTAL_QUESTIONS_COUNT = 250; 
 
 let allQuestions = [];
 let quizData = [];
@@ -76,12 +76,10 @@ function renderCalendar() {
 
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
-
     const completedDates = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
 
     container.innerHTML = '';
 
-    // Create empty slots for days before the 1st of the month
     for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.classList.add('cal-day-empty');
@@ -91,19 +89,15 @@ function renderCalendar() {
     for (let d = 1; d <= daysInMonth; d++) {
         const dayBox = document.createElement('div');
         dayBox.classList.add('cal-day');
-        
         const dateObj = new Date(now.getFullYear(), now.getMonth(), d);
         const dateKey = dateObj.toDateString();
-
         dayBox.innerText = d;
 
         if (d === now.getDate()) dayBox.classList.add('today');
-        
         if (completedDates.includes(dateKey)) {
             dayBox.classList.add('completed');
             dayBox.innerHTML = `${d}<span class="tick">✅</span>`;
         }
-
         container.appendChild(dayBox);
     }
 }
@@ -141,13 +135,9 @@ function updateAnalytics() {
     const history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
     const totalSolved = Object.values(history).reduce((a, b) => a + b, 0);
     
-    // Update Points
     if(document.getElementById('points-val')) document.getElementById('points-val').innerText = pts;
-    
-    // Update Solved Count
     if(document.getElementById('solved-count')) document.getElementById('solved-count').innerText = totalSolved;
     
-    // Update Progress Bar and Text
     const progressText = document.getElementById('quest-progress-text');
     if (progressText) progressText.innerText = `Quest Progress (of ${TOTAL_QUESTIONS_COUNT})`;
     
@@ -161,15 +151,23 @@ function updateAnalytics() {
 // --- CORE QUIZ LOGIC ---
 async function init() {
     try {
-        const response = await fetch('./questions.json');
+        // Changed to relative path for better Vercel deployment
+        const response = await fetch('questions.json');
+        if (!response.ok) throw new Error("Question bank not found");
         allQuestions = await response.json();
-        updateAnalytics(); // Run once questions are loaded to ensure progress is accurate
-    } catch (e) { console.error("JSON Error", e); }
+        updateAnalytics(); 
+    } catch (e) { 
+        console.error("JSON Error:", e); 
+    }
 }
 
 window.startFilteredQuiz = (subject) => {
+    // Safety check if questions are still loading
+    if (allQuestions.length === 0) {
+        return alert("Initializing question bank... please try again in a moment.");
+    }
+
     const today = new Date().toDateString();
-    
     if (localStorage.getItem('upsc_last_date') === today && subject !== 'Review') {
         return alert("You've completed your 10 questions for today! Practice in 'Review' or come back tomorrow.");
     }
@@ -181,10 +179,13 @@ window.startFilteredQuiz = (subject) => {
         pool = allQuestions.filter(q => wrongQuestions.includes(q.id));
         if (pool.length === 0) return alert("No mistakes found to review!");
     } else {
-        pool = subject === 'All' ? allQuestions : allQuestions.filter(q => q.subject.toLowerCase() === subject.toLowerCase());
+        // Robust subject matching
+        pool = subject === 'All' ? allQuestions : allQuestions.filter(q => 
+            q.subject.trim().toLowerCase() === subject.trim().toLowerCase()
+        );
     }
 
-    if (pool.length === 0) return alert("Category empty!");
+    if (pool.length === 0) return alert(`Category "${subject}" is currently empty!`);
 
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const startIndex = (dayOfYear * 10) % pool.length;
@@ -213,7 +214,7 @@ function showQuestion() {
                 `).join('')}
             </div>
             <div id="feedback-area" style="display:none; margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
-                <p style="font-size:0.85rem; color:#1e293b;"><strong>💡 Source:</strong> ${q.source || 'UPSC'}</p>
+                <p style="font-size:0.85rem; color:#1e293b;"><strong>💡 Source:</strong> ${q.source || 'UPSC Prelims'}</p>
                 <p style="font-size:0.85rem; color:#475569; margin-top:5px;">${q.explanation || ''}</p>
                 <button onclick="nextStep()" class="btn-primary" style="width:100%; margin-top:10px;">Next Question →</button>
             </div>
@@ -231,11 +232,9 @@ window.handleSelect = (idx) => {
         buttons[idx].classList.add('correct');
         wrongQuestions = wrongQuestions.filter(id => id !== q.id);
         
-        // Update Local History count for progress bar
         let history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
         history[q.subject] = (history[q.subject] || 0) + 1;
         localStorage.setItem('upsc_history', JSON.stringify(history));
-
     } else {
         score -= 0.33; pts = -2;
         buttons[idx].classList.add('wrong');
@@ -294,7 +293,6 @@ function showResults() {
 async function saveData(s, d, comp) {
     localStorage.setItem('upsc_streak', s);
     localStorage.setItem('upsc_last_date', d);
-    
     if (currentUser) {
         await db.collection('users').doc(currentUser.uid).set({
             name: currentUser.displayName,
@@ -309,19 +307,21 @@ async function saveData(s, d, comp) {
 
 window.shareResults = () => {
     const s = localStorage.getItem('upsc_streak');
-    const text = `🚀 My UPSC Prep Streak is ${s} Days! Join the 10-Question Daily Challenge here: [YOUR_URL]`;
+    const text = `🚀 My UPSC Prep Streak is ${s} Days on PrepTrack! Join the challenge: https://upsc-preptrack.vercel.app/`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
 };
 
 async function updateLeaderboard() {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
-    const snap = await db.collection('users').orderBy('points', 'desc').limit(5).get();
-    let html = '<table style="width:100%; font-size:0.9rem;">';
-    snap.forEach(doc => {
-        const userData = doc.data();
-        const displayName = userData.name ? userData.name.split(' ')[0] : "User";
-        html += `<tr><td style="padding:5px 0;">${displayName}</td><td style="text-align:right; font-weight:700; color:#6366f1;">⭐ ${userData.points || 0}</td></tr>`;
-    });
-    list.innerHTML = html + '</table>';
+    try {
+        const snap = await db.collection('users').orderBy('points', 'desc').limit(5).get();
+        let html = '<table style="width:100%; font-size:0.9rem;">';
+        snap.forEach(doc => {
+            const userData = doc.data();
+            const name = userData.name ? userData.name.split(' ')[0] : "User";
+            html += `<tr><td style="padding:5px 0;">${name}</td><td style="text-align:right; font-weight:700; color:#6366f1;">⭐ ${userData.points || 0}</td></tr>`;
+        });
+        list.innerHTML = html + '</table>';
+    } catch(e) { console.log("Leaderboard error", e); }
 }
