@@ -1,5 +1,5 @@
 // --- 1. ZUSTAND FIX ---
-// If you are using Zustand in a separate module, ensure it uses:
+// If using Zustand in your project, ensure the import in that file is:
 // import { create } from 'zustand';
 
 // --- 2. FIREBASE CONFIGURATION ---
@@ -122,13 +122,16 @@ function updateTimerUI() {
     timeLeft--;
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
-    document.getElementById('timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    const display = document.getElementById('timer');
+    if (display) display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
 window.resetTimer = () => {
     clearInterval(timerInterval); timeLeft = 25 * 60; isTimerRunning = false;
-    document.getElementById('timer').innerText = "25:00";
-    document.getElementById('timer-btn').innerHTML = '<i class="fas fa-play"></i> Start';
+    const timerElem = document.getElementById('timer');
+    const btnElem = document.getElementById('timer-btn');
+    if (timerElem) timerElem.innerText = "25:00";
+    if (btnElem) btnElem.innerHTML = '<i class="fas fa-play"></i> Start';
 };
 
 // --- 8. QUIZ ENGINE ---
@@ -197,7 +200,41 @@ function showResults() {
     document.getElementById('quiz-container').innerHTML = `<h2>Result: ${score.toFixed(2)}</h2><button onclick="location.reload()" class="btn-primary-large">Dashboard</button>`;
 }
 
-// --- 9. ANALYTICS & TODO ---
+// --- 9. ANALYTICS, TODO & STREAK ---
+function calculateStreak() {
+    const completedDates = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
+    if (completedDates.length === 0) return 0;
+
+    const uniqueDates = [...new Set(completedDates)];
+    const dateObjects = uniqueDates.map(d => {
+        const date = new Date(d);
+        date.setHours(0,0,0,0);
+        return date.getTime();
+    }).sort((a, b) => b - a);
+
+    let streak = 0;
+    let today = new Date();
+    today.setHours(0,0,0,0);
+    let yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // If the latest date is neither today nor yesterday, streak is broken
+    if (dateObjects[0] !== today.getTime() && dateObjects[0] !== yesterday.getTime()) return 0;
+
+    let expectedTime = dateObjects[0];
+    for (let time of dateObjects) {
+        if (time === expectedTime) {
+            streak++;
+            let nextExpected = new Date(expectedTime);
+            nextExpected.setDate(nextExpected.getDate() - 1);
+            expectedTime = nextExpected.getTime();
+        } else {
+            break;
+        }
+    }
+    return streak;
+}
+
 function updatePoints(pts, subject) {
     let p = Math.max(0, (parseInt(localStorage.getItem('upsc_points')) || 0) + pts);
     localStorage.setItem('upsc_points', p);
@@ -213,8 +250,14 @@ function updatePoints(pts, subject) {
 function updateAnalytics() {
     const history = JSON.parse(localStorage.getItem('upsc_history') || "{}");
     const solved = Object.values(history).reduce((a, b) => a + b, 0);
-    document.getElementById('points-val').innerText = localStorage.getItem('upsc_points') || 0;
-    document.getElementById('solved-count').innerText = solved;
+    const pointsDisplay = document.getElementById('points-val');
+    const solvedDisplay = document.getElementById('solved-count');
+    const streakDisplay = document.getElementById('streak-val');
+    
+    if (pointsDisplay) pointsDisplay.innerText = localStorage.getItem('upsc_points') || 0;
+    if (solvedDisplay) solvedDisplay.innerText = solved;
+    if (streakDisplay) streakDisplay.innerText = calculateStreak();
+    
     ['polity', 'history', 'geography', 'economy', 'science'].forEach(s => {
         const bar = document.getElementById(`mastery-${s}`);
         if (bar) bar.style.width = `${Math.min(((history[s] || 0) / 50) * 100, 100)}%`;
@@ -248,11 +291,35 @@ window.deleteTask = (id) => {
 };
 
 async function updateLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
     try {
         const snap = await db.collection('users').orderBy('points', 'desc').limit(5).get();
-        let html = ''; snap.forEach((doc, i) => { html += `<li>${i+1}. ${doc.data().name} - ${doc.data().points} XP</li>`; });
-        document.getElementById('leaderboard-list').innerHTML = html;
-    } catch(e) { console.log("Leaderboard locked."); }
+        let html = ''; 
+        let rank = 1; 
+        snap.forEach((doc) => { 
+            const d = doc.data();
+            html += `<li style="display:flex; justify-content:space-between; padding:5px 0; font-size:0.85rem;">
+                <span>${rank}. ${d.name || 'User'}</span>
+                <span style="font-weight:700; color:#6366f1;">${d.points || 0} XP</span>
+            </li>`; 
+            rank++;
+        });
+        list.innerHTML = html;
+    } catch(e) { 
+        console.log("Leaderboard locked."); 
+        list.innerHTML = "Sign in to see rankings.";
+    }
 }
 
-auth.onAuthStateChanged(user => { currentUser = user; if (user) { db.collection('users').doc(user.uid).get().then(doc => { if (doc.exists) localStorage.setItem('upsc_points', doc.data().points || 0); init(); }); } else { init(); } });
+auth.onAuthStateChanged(user => { 
+    currentUser = user; 
+    if (user) { 
+        db.collection('users').doc(user.uid).get().then(doc => { 
+            if (doc.exists) localStorage.setItem('upsc_points', doc.data().points || 0); 
+            init(); 
+        }); 
+    } else { 
+        init(); 
+    } 
+});

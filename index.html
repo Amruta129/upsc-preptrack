@@ -19,7 +19,7 @@
         <div class="nav-container">
             <div class="logo">PrepTrack <span class="badge-amruta">w/ Amruta</span></div>
             <div class="nav-right">
-                <div class="streak-pill">🔥 <span id="streak-count">0</span> Days</div>
+                <div class="streak-pill">🔥 <span id="streak-val">0</span> Days</div>
                 <div id="auth-area">
                     <button class="btn-signin" onclick="handleLogin()">Sign In</button>
                 </div>
@@ -80,14 +80,14 @@
                         <span class="goal-tag">250 Goal</span>
                     </div>
                     <div class="progress-bar-bg">
-                        <div id="progress-bar-fill" class="progress-fill"></div>
+                        <div id="progress-bar-fill" class="progress-fill" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
 
             <div class="card leaderboard-card">
                 <h3><i class="fas fa-crown"></i> Global Rankings</h3>
-                <div id="leaderboard-list">
+                <div id="leaderboard-list" class="leaderboard-container">
                     <p class="loading">Syncing rankings...</p>
                 </div>
             </div>
@@ -158,6 +158,10 @@
             </div>
         </aside>
     </main>
+
+    <button class="mobile-menu-btn" onclick="document.body.classList.toggle('sidebar-open')" style="display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
