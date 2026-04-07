@@ -1,4 +1,4 @@
-/* 1. GLOBAL VARIABLES & OVERHAUL */
+/* 1. GLOBAL VARIABLES */
 :root {
     --primary: #6366f1;
     --primary-light: #eef2ff;
@@ -14,18 +14,16 @@
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-* {
-    margin: 0; padding: 0; box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-body, button, input {
-    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
     background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.6;
 }
 
-/* 2. MODERN NAVBAR */
+/* 2. NAVBAR */
 .navbar {
     height: 70px;
     background: #ffffff;
@@ -52,190 +50,185 @@ body, button, input {
     margin-left: 8px; font-weight: 600; border: 1px solid #fbcfe8;
 }
 
-/* 3. DASHBOARD GRID */
+/* 3. FILTER BAR & MASTERY MINI-BARS */
+.filter-bar {
+    background: white;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.filter-container {
+    display: flex; gap: 15px; max-width: 1400px; margin: 0 auto; padding: 0 20px;
+}
+
+.filter-item { 
+    display: flex; flex-direction: column; gap: 6px; min-width: 110px; 
+}
+
+.filter-btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: white; color: var(--text-muted); font-weight: 600;
+    cursor: pointer; transition: 0.2s; font-size: 0.85rem;
+}
+
+.filter-btn.active {
+    background: var(--primary); color: white; border-color: var(--primary);
+}
+
+.mastery-track { 
+    height: 4px; background: #e2e8f0; border-radius: 10px; overflow: hidden; 
+}
+
+.mastery-fill { 
+    height: 100%; width: 0%; background: var(--primary); transition: width 0.5s ease; 
+}
+
+/* 4. DASHBOARD GRID */
 .dashboard-main {
     display: grid;
     grid-template-columns: 300px 1fr 320px;
-    gap: 24px;
-    max-width: 1440px;
-    margin: 24px auto;
-    padding: 0 20px;
+    gap: 24px; max-width: 1440px; margin: 24px auto; padding: 0 20px;
 }
 
-/* 4. CARDS */
+/* 5. CARDS */
 .card {
-    background: var(--bg-card);
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    padding: 24px;
-    margin-bottom: 24px;
+    background: var(--bg-card); border-radius: 20px;
+    border: 1px solid var(--border); padding: 24px; margin-bottom: 24px;
     box-shadow: var(--shadow);
 }
 
 .card h3 {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    letter-spacing: 1.2px;
-    font-weight: 800;
+    font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;
+    margin-bottom: 18px; letter-spacing: 1.2px; font-weight: 800;
 }
 
-/* Dark Mastery Card Theme */
+/* Dark Mastery Card */
 .mastery-theme {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-    color: #fff !important;
-    border: none !important;
+    color: #fff !important; border: none !important;
 }
 
-.mastery-theme .stat-box {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px; border-radius: 12px; text-align: center;
 }
 
-.mastery-theme .stat-box span {
-    color: #fbbf24 !important; /* Gold points */
-}
+.stat-box span { display: block; font-size: 1.4rem; font-weight: 800; color: #fbbf24; }
+.stat-box label { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; }
 
-/* 5. CONSISTENCY HEATMAP (FIXED ALIGNMENT) */
-.heatmap-card {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
+/* 6. HEATMAP & CALENDAR */
 .heatmap-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
 }
 
-.current-month {
-    font-size: 0.8rem; font-weight: 800; color: var(--primary);
-    background: var(--primary-light); padding: 4px 12px; border-radius: 20px;
+.cal-nav-btn {
+    background: #f1f5f9; border: none; border-radius: 6px;
+    padding: 5px 10px; cursor: pointer; color: #64748b; transition: 0.2s;
 }
+
+.cal-nav-btn:hover { background: var(--primary); color: white; }
 
 .calendar-grid-labels {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-    font-weight: 800;
-    font-size: 0.7rem;
-    color: #94a3b8;
+    display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;
+    font-weight: 800; font-size: 0.7rem; color: #94a3b8; margin-bottom: 10px;
 }
 
-.heatmap-container {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-}
+.heatmap-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
 
 .cal-day {
-    aspect-ratio: 1;
-    background: #f8fafc;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    color: #64748b;
-    position: relative;
+    aspect-ratio: 1; background: #f8fafc; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: #64748b; position: relative; font-weight: 600;
 }
 
 .cal-day.completed {
-    background: var(--primary) !important;
-    color: white !important;
-    font-weight: 700;
+    background-color: var(--success) !important; color: white !important;
+    border: 1px solid #16a34a; font-weight: 800;
 }
 
-.cal-day.completed::after {
-    content: '✓';
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    font-size: 0.6rem;
+.cal-day.today { border: 2px solid var(--primary); }
+
+/* 7. FOCUS TIMER */
+.focus-card { text-align: center; }
+
+.timer-display {
+    font-size: 2.8rem; font-weight: 800; text-align: center;
+    color: var(--primary); margin: 10px 0; font-family: 'monospace';
+    letter-spacing: 2px;
 }
 
-.cal-day.today {
-    border: 2px solid var(--primary);
+.timer-controls { display: flex; gap: 10px; justify-content: center; }
+
+.timer-main-btn {
+    padding: 10px 25px; border-radius: 10px; border: none;
+    background: var(--primary); color: white; font-weight: 700; cursor: pointer;
 }
 
-/* 6. DAILY TARGETS (FIXED INPUT) */
-.todo-input-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+.timer-reset-btn {
+    padding: 10px; border-radius: 10px; border: none;
+    background: #f1f5f9; color: var(--text-muted); cursor: pointer;
 }
 
+/* 8. TODO LIST */
+.todo-input-group { display: flex; gap: 8px; margin-bottom: 15px; }
 .todo-input-group input {
-    flex: 1;
-    padding: 10px 15px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    outline: none;
-    font-family: inherit;
+    flex: 1; padding: 10px 15px; border: 1px solid var(--border);
+    border-radius: 8px; outline: none;
 }
-
-.todo-input-group input:focus {
-    border-color: var(--primary);
-}
-
 .todo-input-group button {
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    width: 40px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: var(--primary); color: white; border: none;
+    border-radius: 8px; width: 40px; cursor: pointer;
 }
 
-/* 7. PROGRESS BAR */
+.todo-list-container { list-style: none; }
+.todo-list-container li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem;
+}
+
+/* 9. PROGRESS BARS */
 .progress-bar-bg {
-    background: rgba(255, 255, 255, 0.1);
-    height: 8px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-top: 8px;
+    background: rgba(255, 255, 255, 0.1); height: 8px;
+    border-radius: 10px; overflow: hidden; margin-top: 8px;
 }
 
 .progress-fill {
     background: linear-gradient(90deg, #4f46e5, #06b6d4);
-    height: 100%;
-    width: 0%;
-    transition: width 1s ease-in-out;
+    height: 100%; width: 0%; transition: width 1s ease-in-out;
 }
 
-/* 8. COMMUNITY BUTTONS */
-.community-links {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+/* 10. QUIZ BUTTONS & ANIMATION */
+.pulse-btn {
+    animation: pulse-animation 2s infinite;
 }
 
+@keyframes pulse-animation {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+    70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.btn-primary-large {
+    width: 100%; padding: 16px; border-radius: 12px; border: none;
+    background: var(--primary); color: white; font-weight: 700;
+    font-size: 1rem; cursor: pointer; transition: 0.2s;
+}
+
+/* 11. COMMUNITY BUTTONS */
+.community-links { display: flex; flex-direction: column; gap: 10px; }
 .community-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: white;
-    transition: transform 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 12px; border-radius: 10px; text-decoration: none;
+    font-weight: 700; font-size: 0.85rem; color: white;
 }
-
-.community-btn:hover { transform: translateY(-2px); }
 .community-btn.whatsapp { background: #25d366; }
 .community-btn.telegram { background: #0088cc; }
 .community-btn.youtube  { background: #ff0000; }
 
-/* 9. RESPONSIVE FIXES */
+/* 12. RESPONSIVE */
 @media (max-width: 1200px) {
     .dashboard-main { grid-template-columns: 1fr 1fr; }
     .sidebar-right { grid-column: span 2; }
@@ -243,21 +236,5 @@ body, button, input {
 
 @media (max-width: 768px) {
     .dashboard-main { grid-template-columns: 1fr; }
-}/* Consistency "Greenery" Style */
-.cal-day.completed {
-    background-color: #22c55e !important; /* Success Green */
-    color: white !important;
-    border: 1px solid #16a34a;
-    position: relative;
-    font-weight: 800;
-}
-
-/* The Tick Mark */
-.cal-day.completed::after {
-    content: '✓';
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    font-size: 0.6rem;
-    font-weight: 900;
+    .sidebar-left, .sidebar-right { grid-column: auto; }
 }
