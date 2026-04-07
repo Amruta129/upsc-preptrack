@@ -1,9 +1,9 @@
-/* 1. GLOBAL OVERHAUL & VARIABLES */
+/* 1. GLOBAL VARIABLES & OVERHAUL */
 :root {
-    --primary: #6366f1; /* Indigo */
+    --primary: #6366f1;
     --primary-light: #eef2ff;
     --primary-dark: #4338ca;
-    --secondary: #a855f7; /* Purple */
+    --secondary: #a855f7;
     --bg-main: #f8fafc;
     --bg-card: #ffffff;
     --text-main: #1e293b;
@@ -11,16 +11,15 @@
     --success: #22c55e;
     --danger: #ef4444;
     --border: #e2e8f0;
-    --whatsapp: #25d366;
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 * {
     margin: 0; padding: 0; box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
 }
 
-body {
+body, button, input {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
     background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.6;
@@ -53,12 +52,6 @@ body {
     margin-left: 8px; font-weight: 600; border: 1px solid #fbcfe8;
 }
 
-.streak-pill {
-    background: #fff7ed; color: #ea580c;
-    padding: 8px 16px; border-radius: 20px;
-    font-weight: 700; border: 1px solid #ffedd5;
-}
-
 /* 3. DASHBOARD GRID */
 .dashboard-main {
     display: grid;
@@ -88,159 +81,6 @@ body {
     font-weight: 800;
 }
 
-/* 5. CALENDAR HEATMAP (FIXED GRID) */
-.heatmap-container {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 Days per row */
-    gap: 6px;
-    margin-top: 10px;
-}
-
-.cal-day {
-    aspect-ratio: 1;
-    background: #f1f5f9;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    color: #94a3b8;
-    position: relative;
-    transition: all 0.2s;
-}
-
-.cal-day-empty {
-    aspect-ratio: 1;
-    background: transparent;
-}
-
-.cal-day.today {
-    border: 2px solid var(--primary);
-    color: var(--primary);
-    font-weight: 800;
-}
-
-.cal-day.completed {
-    background: #dcfce7;
-    color: #16a34a;
-    font-weight: 700;
-    border: 1px solid #bbf7d0;
-}
-
-.tick {
-    position: absolute;
-    bottom: 1px;
-    right: 1px;
-    font-size: 0.55rem;
-}
-
-/* 6. PROGRESS BAR (Individually Controlled) */
-#progress-bar-fill {
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 7. FILTER BAR */
-.filter-bar {
-    background: white;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 70px;
-    z-index: 999;
-}
-
-.filter-container {
-    width: 95%; max-width: 1400px; margin: 0 auto;
-    display: flex; gap: 12px;
-    overflow-x: auto;
-}
-
-.filter-btn {
-    padding: 10px 20px; border-radius: 12px; border: 1px solid var(--border);
-    background: white; cursor: pointer; font-size: 0.9rem; font-weight: 600;
-    transition: 0.2s; white-space: nowrap;
-}
-
-.filter-btn:hover, .filter-btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-
-/* 8. QUIZ COMPONENTS */
-.main-quiz-card {
-    border-top: 8px solid var(--primary);
-}
-
-.option-row {
-    width: 100%; display: flex; align-items: center;
-    background: #fff; border: 2px solid #f1f5f9;
-    padding: 20px; border-radius: 16px;
-    margin-bottom: 16px; cursor: pointer; transition: 0.2s;
-}
-
-.option-row:hover {
-    border-color: var(--primary);
-    transform: translateX(4px);
-}
-
-.option-row.correct { background: #f0fdf4; border-color: #22c55e; }
-.option-row.wrong { background: #fef2f2; border-color: #ef4444; }
-
-/* 9. STATS GRID */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.stat-box {
-    background: #f8fafc;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid #f1f5f9;
-}
-
-.stat-box span {
-    display: block;
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: var(--primary);
-}
-
-.stat-box label {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-weight: 700;
-}
-
-/* 10. RESPONSIVE */
-@media (max-width: 1200px) {
-    .dashboard-main { grid-template-columns: 1fr 1.5fr; }
-    .sidebar-right { grid-column: span 2; display: flex; gap: 20px; }
-    .sidebar-right .card { flex: 1; }
-}
-
-@media (max-width: 768px) {
-    .dashboard-main { grid-template-columns: 1fr; padding: 0 15px; }
-    .sidebar-right { flex-direction: column; }
-    .filter-container { padding-bottom: 5px; }
-}
-
-/* ANIMATIONS */
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.animate-in { animation: slideUp 0.5s ease-out; }
-/* --- PREMIUM UI ENHANCEMENTS --- */
-
-/* Modern Font Overwrite */
-body, button, input {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-}
-
 /* Dark Mastery Card Theme */
 .mastery-theme {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
@@ -257,138 +97,123 @@ body, button, input {
     color: #fbbf24 !important; /* Gold points */
 }
 
-.goal-tag {
-    font-size: 0.65rem;
-    background: rgba(99, 102, 241, 0.2);
-    color: #818cf8;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 800;
+/* 5. CONSISTENCY HEATMAP (FIXED ALIGNMENT) */
+.heatmap-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-/* Attractive Welcome Screen */
-.welcome-screen .hero-icon {
-    font-size: 4rem;
-    margin-bottom: 10px;
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
-}
-
-.welcome-screen h1 {
-    font-size: 2.2rem;
-    background: linear-gradient(to right, #1e293b, #4f46e5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-}
-
-/* Pulsing Start Button */
-.pulse-btn {
-    background: var(--primary);
-    border: none;
-    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
-    animation: pulse-animation 2s infinite;
-}
-
-@keyframes pulse-animation {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
-/* Heatmap Header Polish */
 .heatmap-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .current-month {
-    font-size: 0.8rem;
+    font-size: 0.8rem; font-weight: 800; color: var(--primary);
+    background: var(--primary-light); padding: 4px 12px; border-radius: 20px;
+}
+
+.calendar-grid-labels {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
     font-weight: 800;
-    color: var(--primary);
-    background: var(--primary-light);
-    padding: 4px 12px;
-    border-radius: 20px;
+    font-size: 0.7rem;
+    color: #94a3b8;
 }
 
-/* Privacy Fix: Hide viral badges if they contain sensitive text */
-.viral-badge {
-    display: none !important; /* Removes the "500 Officers" tag completely */
+.heatmap-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
 }
 
-/* Progress Fill Color */
-.progress-fill {
-    background: linear-gradient(90deg, #4f46e5, #06b6d4);
-    height: 100%;
-    border-radius: 20px;
-}
-.progress-fill {
-    position: relative;
-    overflow: hidden;
-}
-
-.progress-fill::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(
-        90deg, 
-        rgba(255,255,255,0) 0%, 
-        rgba(255,255,255,0.3) 50%, 
-        rgba(255,255,255,0) 100%
-    );
-    animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-/* --- COMMUNITY BUTTONS --- */
-.community-links {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 15px;
-}
-
-.community-btn {
+.cal-day {
+    aspect-ratio: 1;
+    background: #f8fafc;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 12px;
-    border-radius: 12px;
-    text-decoration: none;
+    font-size: 0.75rem;
+    color: #64748b;
+    position: relative;
+}
+
+.cal-day.completed {
+    background: var(--primary) !important;
+    color: white !important;
     font-weight: 700;
-    font-size: 0.9rem;
-    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cal-day.completed::after {
+    content: '✓';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 0.6rem;
+}
+
+.cal-day.today {
+    border: 2px solid var(--primary);
+}
+
+/* 6. DAILY TARGETS (FIXED INPUT) */
+.todo-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.todo-input-group input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    font-family: inherit;
+}
+
+.todo-input-group input:focus {
+    border-color: var(--primary);
+}
+
+.todo-input-group button {
+    background: var(--primary);
     color: white;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.community-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* 7. PROGRESS BAR */
+.progress-bar-bg {
+    background: rgba(255, 255, 255, 0.1);
+    height: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 8px;
 }
 
-.community-btn.whatsapp {
-    background: #25d366; /* WhatsApp Green */
+.progress-fill {
+    background: linear-gradient(90deg, #4f46e5, #06b6d4);
+    height: 100%;
+    width: 0%;
+    transition: width 1s ease-in-out;
 }
 
-.community-btn.telegram {
-    background: #0088cc; /* Telegram Blue */
-}
-
-.community-btn i {
-    font-size: 1.2rem;
-}
-/* --- UPDATED COMMUNITY LINKS --- */
+/* 8. COMMUNITY BUTTONS */
 .community-links {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 15px;
 }
 
 .community-btn {
@@ -401,100 +226,38 @@ body, button, input {
     text-decoration: none;
     font-weight: 700;
     font-size: 0.85rem;
-    transition: all 0.3s ease;
     color: white;
+    transition: transform 0.2s;
 }
 
-.community-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
+.community-btn:hover { transform: translateY(-2px); }
 .community-btn.whatsapp { background: #25d366; }
 .community-btn.telegram { background: #0088cc; }
 .community-btn.youtube  { background: #ff0000; }
 
-.community-btn i {
-    font-size: 1.1rem;
-}/* Heatmap Completion Style */
-.cal-day.completed {
-    background-color: #6366f1 !important; /* Purple/Blue background */
-    color: white !important;
-    position: relative;
+/* 9. RESPONSIVE FIXES */
+@media (max-width: 1200px) {
+    .dashboard-main { grid-template-columns: 1fr 1fr; }
+    .sidebar-right { grid-column: span 2; }
 }
 
-/* Add the Checkmark inside the box */
+@media (max-width: 768px) {
+    .dashboard-main { grid-template-columns: 1fr; }
+}/* Consistency "Greenery" Style */
+.cal-day.completed {
+    background-color: #22c55e !important; /* Success Green */
+    color: white !important;
+    border: 1px solid #16a34a;
+    position: relative;
+    font-weight: 800;
+}
+
+/* The Tick Mark */
 .cal-day.completed::after {
     content: '✓';
     position: absolute;
     bottom: 2px;
     right: 2px;
     font-size: 0.6rem;
-    font-weight: 800;
-}
-
-/* Optional: Today's date highlight */
-.cal-day.today {
-    border: 2px solid #6366f1;
-    font-weight: 800;
-}/* --- FIX FOR HEATMAP ALIGNMENT --- */
-.heatmap-card {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.calendar-grid-labels {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* Forces horizontal row */
-    text-align: center;
-    font-weight: 800;
-    font-size: 0.7rem;
-    color: #94a3b8;
-    margin-bottom: 5px;
-}
-
-.heatmap-container {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 columns for 7 days */
-    gap: 8px;
-}
-
-/* --- FIX FOR DAILY TARGETS INPUT --- */
-.todo-input-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
-}
-
-.todo-input-group input {
-    flex: 1;
-    padding: 10px 15px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    outline: none;
-    font-family: inherit;
-    transition: border-color 0.2s;
-}
-
-.todo-input-group input:focus {
-    border-color: #6366f1;
-}
-
-.todo-input-group button {
-    background: #6366f1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    width: 40px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-
-.todo-input-group button:hover {
-    background: #4f46e5;
+    font-weight: 900;
 }

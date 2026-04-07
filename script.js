@@ -170,9 +170,9 @@ window.nextStep = () => {
 function showResults() {
     const container = document.getElementById('quiz-container');
     const today = new Date().toDateString();
+    
+    // Save state
     localStorage.setItem('upsc_last_date', today);
-
-    // FIX: Ensure the calendar date is pushed correctly
     let comp = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
     if (!comp.includes(today)) comp.push(today);
     localStorage.setItem('upsc_completed_dates', JSON.stringify(comp));
@@ -182,13 +182,14 @@ function showResults() {
             <div style="font-size:3rem; margin-bottom:10px;">🎯</div>
             <h2 style="color:#1e293b;">Drill Complete!</h2>
             <p style="color:#64748b; margin-bottom:20px;">Session Score: <strong>${score.toFixed(2)}</strong></p>
-            <button onclick="location.reload()" class="btn-primary" style="padding:12px 30px; background:#6366f1; color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Claim Reward & Exit</button>
+            <p style="color:#22c55e; font-weight:800; font-size:0.9rem;">Heatmap Updated! 🌿</p>
+            <button onclick="location.reload()" class="btn-primary" style="padding:12px 30px; background:#6366f1; color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer; margin-top:10px;">Claim Reward & Exit</button>
         </div>`;
     
-    renderCalendar(); // Re-render to show the "tick"
+    renderCalendar();
 }
 
-// --- CALENDAR & LEADERBOARD ---
+// --- CALENDAR LOGIC (FULLY FIXED) ---
 function renderCalendar() {
     const container = document.getElementById('calendar-days');
     const label = document.getElementById('month-label');
@@ -202,13 +203,26 @@ function renderCalendar() {
     const completedDates = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
 
     container.innerHTML = '';
-    for (let i = 0; i < firstDay; i++) container.innerHTML += `<div class="cal-day-empty"></div>`;
+    
+    // Fill leading empty days
+    for (let i = 0; i < firstDay; i++) {
+        container.innerHTML += `<div class="cal-day-empty"></div>`;
+    }
 
+    // Render active month days
     for (let d = 1; d <= daysInMonth; d++) {
-        const dateKey = new Date(now.getFullYear(), now.getMonth(), d).toDateString();
-        const isDone = completedDates.includes(dateKey);
-        // FIX: Ensure the "completed" class is applied correctly for the tick
-        container.innerHTML += `<div class="cal-day ${isDone ? 'completed' : ''}" style="width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:600; border-radius:6px; background:${isDone ? '#6366f1' : '#f8fafc'}; color:${isDone ? 'white' : '#64748b'};">${d}</div>`;
+        const fullDate = new Date(now.getFullYear(), now.getMonth(), d).toDateString();
+        const isDone = completedDates.includes(fullDate);
+        const isToday = fullDate === new Date().toDateString();
+        
+        // Applying classes and the '✓' tick for completed days
+        container.innerHTML += `
+            <div class="cal-day ${isDone ? 'completed' : ''} ${isToday ? 'today' : ''}" 
+                 style="position:relative; width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:600; border-radius:6px; cursor:default; transition:all 0.3s;
+                 background:${isDone ? 'var(--primary)' : '#f8fafc'}; color:${isDone ? 'white' : '#64748b'};">
+                ${d}
+                ${isDone ? '<span style="position:absolute; bottom:2px; right:2px; font-size:0.6rem; font-weight:900;">✓</span>' : ''}
+            </div>`;
     }
 }
 
@@ -273,7 +287,6 @@ auth.onAuthStateChanged(user => {
     const authArea = document.getElementById('auth-area');
     
     if (user) {
-        // FIX: Added the greeting message to show your name in the corner
         authArea.innerHTML = `
             <div style="display:flex; align-items:center; gap:12px;">
                 <span style="font-size:0.85rem; font-weight:700; color:#1e293b;">Hi, ${user.displayName.split(' ')[0]}</span>
