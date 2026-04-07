@@ -44,7 +44,7 @@ async function init() {
     } catch (e) { console.error("Init Error:", e); }
 }
 
-// --- 5. AUTHENTICATION ---
+// --- 5. AUTHENTICATION & CLOUD SYNC ---
 function updateAuthUI() {
     const authArea = document.getElementById('auth-area');
     if (!authArea) return;
@@ -61,9 +61,44 @@ function updateAuthUI() {
 }
 
 window.handleLogin = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-window.handleLogout = () => { auth.signOut().then(() => { localStorage.clear(); location.reload(); }); };
 
-// --- 6. HEATMAP NAVIGATION ---
+window.handleLogout = () => { 
+    auth.signOut().then(() => { 
+        localStorage.clear(); 
+        location.reload(); 
+    }); 
+};
+
+// Pulls data from Cloud to LocalStorage to restore user state
+async function pullFromCloud(user) {
+    try {
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+            const data = userDoc.data();
+            if (data.points !== undefined) localStorage.setItem('upsc_points', data.points);
+            if (data.completedDates) localStorage.setItem('upsc_completed_dates', JSON.stringify(data.completedDates));
+            if (data.history) localStorage.setItem('upsc_history', JSON.stringify(data.history));
+            if (data.tasks) localStorage.setItem('upsc_todo_tasks', JSON.stringify(data.tasks));
+            if (data.lastDate) localStorage.setItem('upsc_last_date', data.lastDate);
+        }
+    } catch (e) { console.error("Cloud Pull Error:", e); }
+}
+
+// Saves everything to Cloud so it stays with the account
+function saveToCloud() {
+    if (!currentUser) return;
+    const dataToSave = {
+        name: currentUser.displayName,
+        points: parseInt(localStorage.getItem('upsc_points')) || 0,
+        completedDates: JSON.parse(localStorage.getItem('upsc_completed_dates')) || [],
+        history: JSON.parse(localStorage.getItem('upsc_history')) || {},
+        tasks: JSON.parse(localStorage.getItem('upsc_todo_tasks')) || [],
+        lastDate: localStorage.getItem('upsc_last_date') || ""
+    };
+    db.collection('users').doc(currentUser.uid).set(dataToSave, { merge: true });
+}
+
+// --- 6. HEATMAP ---
 window.changeMonth = (offset) => {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
     renderCalendar();
@@ -134,13 +169,16 @@ window.resetTimer = () => {
     if (btnElem) btnElem.innerHTML = '<i class="fas fa-play"></i> Start';
 };
 
-// --- 8. QUIZ ENGINE ---
-window.startFilteredQuiz = (subject, isAutoLoad = false) => {
+// --- 8. QUIZ ENGINE (WITH DAILY LOCK) ---
+window.startFilteredQuiz = async (subject, isAutoLoad = false) => {
     if (!allQuestions.length) return;
     const today = new Date().toDateString();
-    if (localStorage.getItem('upsc_last_date') === today && subject !== 'review' && !isAutoLoad) {
-        return alert("Daily drill completed!");
+
+    const lastDate = localStorage.getItem('upsc_last_date');
+    if (lastDate === today && subject !== 'review' && !isAutoLoad) {
+        return alert("Mission Accomplished! You've already finished your 10 questions for today. See you tomorrow! 🏛️");
     }
+
     currentIdx = 0; score = 0;
     let pool = (subject === 'review') ? allQuestions.filter(q => wrongQuestions.includes(q.id)) :
                (subject === 'all') ? allQuestions : allQuestions.filter(q => q.subject.toLowerCase() === subject.toLowerCase());
@@ -194,17 +232,25 @@ window.nextStep = () => {
 function showResults() {
     const today = new Date().toDateString();
     localStorage.setItem('upsc_last_date', today);
+    
     let comp = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
     if (!comp.includes(today)) comp.push(today);
     localStorage.setItem('upsc_completed_dates', JSON.stringify(comp));
-    document.getElementById('quiz-container').innerHTML = `<h2>Result: ${score.toFixed(2)}</h2><button onclick="location.reload()" class="btn-primary-large">Dashboard</button>`;
+
+    saveToCloud(); 
+
+    document.getElementById('quiz-container').innerHTML = `
+        <div class="result-screen">
+            <h2>Result: ${score.toFixed(2)}</h2>
+            <p>Today's drill is complete. Data synced to account.</p>
+            <button onclick="location.reload()" class="btn-primary-large">Back to Dashboard</button>
+        </div>`;
 }
 
 // --- 9. ANALYTICS, TODO & STREAK ---
 function calculateStreak() {
     const completedDates = JSON.parse(localStorage.getItem('upsc_completed_dates')) || [];
     if (completedDates.length === 0) return 0;
-
     const uniqueDates = [...new Set(completedDates)];
     const dateObjects = uniqueDates.map(d => {
         const date = new Date(d);
@@ -218,7 +264,6 @@ function calculateStreak() {
     let yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // If the latest date is neither today nor yesterday, streak is broken
     if (dateObjects[0] !== today.getTime() && dateObjects[0] !== yesterday.getTime()) return 0;
 
     let expectedTime = dateObjects[0];
@@ -228,9 +273,7 @@ function calculateStreak() {
             let nextExpected = new Date(expectedTime);
             nextExpected.setDate(nextExpected.getDate() - 1);
             expectedTime = nextExpected.getTime();
-        } else {
-            break;
-        }
+        } else { break; }
     }
     return streak;
 }
@@ -243,7 +286,7 @@ function updatePoints(pts, subject) {
         history[subject.toLowerCase()] = (history[subject.toLowerCase()] || 0) + 1;
         localStorage.setItem('upsc_history', JSON.stringify(history));
     }
-    if (currentUser) db.collection('users').doc(currentUser.uid).set({ points: p, name: currentUser.displayName }, { merge: true });
+    saveToCloud();
     updateAnalytics();
 }
 
@@ -270,7 +313,9 @@ window.addTask = () => {
     if (!input.value.trim()) return;
     tasks.push({ id: Date.now(), text: input.value, completed: false });
     localStorage.setItem('upsc_todo_tasks', JSON.stringify(tasks));
-    input.value = ""; renderTodoList();
+    input.value = ""; 
+    saveToCloud();
+    renderTodoList();
 };
 
 function renderTodoList() {
@@ -282,12 +327,16 @@ function renderTodoList() {
 
 window.toggleTask = (id) => {
     let tasks = JSON.parse(localStorage.getItem('upsc_todo_tasks')).map(t => t.id === id ? {...t, completed: !t.completed} : t);
-    localStorage.setItem('upsc_todo_tasks', JSON.stringify(tasks)); renderTodoList();
+    localStorage.setItem('upsc_todo_tasks', JSON.stringify(tasks)); 
+    saveToCloud();
+    renderTodoList();
 };
 
 window.deleteTask = (id) => {
     let tasks = JSON.parse(localStorage.getItem('upsc_todo_tasks')).filter(t => t.id !== id);
-    localStorage.setItem('upsc_todo_tasks', JSON.stringify(tasks)); renderTodoList();
+    localStorage.setItem('upsc_todo_tasks', JSON.stringify(tasks)); 
+    saveToCloud();
+    renderTodoList();
 };
 
 async function updateLeaderboard() {
@@ -296,7 +345,8 @@ async function updateLeaderboard() {
     try {
         const snap = await db.collection('users').orderBy('points', 'desc').limit(5).get();
         let html = ''; 
-        let rank = 1; 
+        let rank = 1; // FIX: Ensures rank starts at 1 and isn't NaN
+        
         snap.forEach((doc) => { 
             const d = doc.data();
             html += `<li style="display:flex; justify-content:space-between; padding:5px 0; font-size:0.85rem;">
@@ -305,20 +355,18 @@ async function updateLeaderboard() {
             </li>`; 
             rank++;
         });
-        list.innerHTML = html;
+        list.innerHTML = html || "No rankings yet.";
     } catch(e) { 
-        console.log("Leaderboard locked."); 
         list.innerHTML = "Sign in to see rankings.";
     }
 }
 
-auth.onAuthStateChanged(user => { 
+// --- 10. AUTH LISTENER ---
+auth.onAuthStateChanged(async user => { 
     currentUser = user; 
     if (user) { 
-        db.collection('users').doc(user.uid).get().then(doc => { 
-            if (doc.exists) localStorage.setItem('upsc_points', doc.data().points || 0); 
-            init(); 
-        }); 
+        await pullFromCloud(user); 
+        init(); 
     } else { 
         init(); 
     } 
